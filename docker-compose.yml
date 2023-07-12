@@ -3,14 +3,14 @@ services:
   cash-get-api:
     build:
       context: .
-    env_file: .
+    env_file: .env
     ports:
-      - "$PORT:$PORT"
+      - $PORT:$PORT
     depends_on:
       - db
-      # volumes:
-      # - .:/user/src/app
-      # - /user/src/app/node_modules
+    volumes:
+      - .:/user/src/app
+      - /user/src/app/node_modules
     command: yarn start:dev
 
   db:

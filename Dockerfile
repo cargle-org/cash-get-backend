@@ -15,4 +15,4 @@ RUN yarn install --frozen-lockfile
 # ENV PORT=6001
 # ENV NODE_ENV=DEVELOPMENT
 
-EXPOSE 6001
+EXPOSE 5000
