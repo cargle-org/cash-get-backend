@@ -17,5 +17,5 @@ export class CreateShopDto {
   @Matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/)
   password: string;
   @IsString() @IsNotEmpty() address: string;
-  @IsString() @IsEnum(UserEnum) enum: UserEnum.SHOP;
+  @IsString() @IsEnum(UserEnum) role: UserEnum.SHOP;
 }

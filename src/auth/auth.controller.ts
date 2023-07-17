@@ -11,6 +11,7 @@ import { Request } from 'express';
 import { User } from 'src/user/entities/user.entity';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
+import { LocalAuthGuard } from './guards/loginGuard.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -18,15 +19,16 @@ export class AuthController {
 
   @Post('register')
   async registerNewUser(@Body() registerUserDto: RegisterDto) {
-    await this.authService.registerNewUser(registerUserDto);
+    const data = await this.authService.registerNewUser(registerUserDto);
     return {
       success: true,
       message: 'user registered successfully',
+      data,
     };
   }
 
   @HttpCode(200)
-  @UseGuards(AuthGuard('local'))
+  @UseGuards(LocalAuthGuard)
   @Post('login')
   async loginUser(@Req() request: Request) {
     const user = (request as any).user as User;

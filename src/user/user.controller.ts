@@ -15,6 +15,16 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Post()
+  async create(@Body() createUserDto: CreateUserDto) {
+    const data = await this.userService.create(createUserDto);
+    return {
+      success: true,
+      message: 'agent created successfully',
+      data,
+    };
+  }
+
   @Get()
   findAll() {
     return this.userService.findAll();

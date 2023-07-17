@@ -7,14 +7,14 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  OneToOne,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export class Order extends BaseEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn()
   id: string;
 
   @Column()
@@ -29,27 +29,37 @@ export class Order extends BaseEntity {
   @Column()
   contactNumber: string;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   extraInfo: string;
 
-  @OneToOne(() => User)
+  @ManyToOne(() => User)
   @JoinColumn()
   agent: User;
 
-  @OneToOne(() => Shop)
+  @ManyToOne(() => Shop)
   @JoinColumn()
   shop: Shop;
 
-  @Column()
+  @Column({
+    default: false,
+  })
   agentConfirmed: boolean;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   agentKey: string;
 
-  @Column()
+  @Column({
+    default: false,
+  })
   shopConfirmed: boolean;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   shopKey: string;
 
   @Column({

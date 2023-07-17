@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -11,9 +12,11 @@ import { Order } from './entities/order.entity';
 import { Repository } from 'typeorm';
 import { ShopService } from 'src/shop/shop.service';
 import { UserService } from 'src/user/user.service';
-import CryptoJs from 'crypto-js';
+import * as CryptoJs from 'crypto-js';
 import { ConfigService } from '@nestjs/config';
-import { orderStatusEnum } from 'src/utils/constants';
+import { KEY_LENGTH, orderStatusEnum } from 'src/utils/constants';
+import { FirebaseService } from 'src/firebase/firebase.service';
+import { generateKey } from 'src/utils/misc';
 
 @Injectable()
 export class OrderService {
@@ -23,14 +26,11 @@ export class OrderService {
     private configService: ConfigService,
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
+    private readonly firebaseService: FirebaseService,
   ) {}
   async create(shopId: string, createOrderDto: CreateOrderDto) {
     const shop = await this.shopService.findOne(shopId);
-    const shopKey = CryptoJs.AES.encrypt(
-      shop.id,
-      this.configService.get('SECRET_KEY'),
-    ).toString();
-
+    const shopKey = generateKey(KEY_LENGTH, shop.role);
     const orderDetails = {
       ...createOrderDto,
       shopKey,
@@ -41,6 +41,18 @@ export class OrderService {
     if (!newOrder) {
       throw new InternalServerErrorException();
     }
+
+    const firebaseOrderRef = this.firebaseService.db().ref('order');
+
+    firebaseOrderRef.push({
+      id: newOrder.id,
+      shopId: shop.id,
+      amount: newOrder.amount,
+      status: newOrder.status,
+      agentName: null,
+      agentId: null,
+      agentNo: null,
+    });
     return newOrder;
   }
 
@@ -52,10 +64,7 @@ export class OrderService {
     }
     const agent = await this.userService.findOne(agentId);
 
-    const agentKey = CryptoJs.AES.encrypt(
-      agent.id,
-      this.configService.get('SECRET_KEY'),
-    ).toString();
+    const agentKey = generateKey(KEY_LENGTH, agent.role);
     order.agentKey = agentKey;
     order.agent = agent;
     order.status = orderStatusEnum.IN_PROGRESS;
@@ -65,20 +74,16 @@ export class OrderService {
     return order;
   }
 
-  async agentConfirm(orderId: string, agentId: string, agentKey: string) {
+  async agentConfirm(orderId: string, agentKey: string) {
     const order = await this.findOne(orderId);
 
-    if (
-      order.agentKey === agentKey &&
-      CryptoJs.AES.decrypt(
-        agentKey,
-        this.configService.get('SECRET_KEY'),
-      ).toString() === agentId
-    ) {
+    if (order.agentKey === agentKey) {
       order.agentConfirmed = true;
       if (order.shopConfirmed) {
         order.status = orderStatusEnum.COMPLETED;
       }
+    } else {
+      throw new ForbiddenException('Wrong Agent Key');
     }
 
     await order.save();
@@ -86,20 +91,16 @@ export class OrderService {
     return order;
   }
 
-  async shopConfirm(orderId: string, shopId: string, shopKey: string) {
+  async shopConfirm(orderId: string, shopKey: string) {
     const order = await this.findOne(orderId);
 
-    if (
-      order.shopKey === shopKey &&
-      CryptoJs.AES.decrypt(
-        shopKey,
-        this.configService.get('SECRET_KEY'),
-      ).toString() === shopId
-    ) {
+    if (order.shopKey === shopKey) {
       order.shopConfirmed = true;
       if (order.agentConfirmed) {
         order.status = orderStatusEnum.COMPLETED;
       }
+    } else {
+      throw new ForbiddenException('Wrong Shop Key');
     }
 
     await order.save();
@@ -114,6 +115,10 @@ export class OrderService {
     const order = await this.orderRepository.findOne({
       where: {
         id: orderId,
+      },
+      relations: {
+        agent: true,
+        shop: true,
       },
     });
     if (!order) {

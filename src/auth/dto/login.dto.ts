@@ -1,6 +1,7 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { UserEnum } from 'src/utils/constants';
 
 export class LoginDto {
-  @IsString() @IsNotEmpty() emailOrUsername: string;
+  @IsString() @IsNotEmpty() email: string;
   @IsString() @IsNotEmpty() password: string;
 }

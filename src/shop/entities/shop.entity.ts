@@ -15,7 +15,7 @@ import { User } from 'src/user/entities/user.entity';
 
 @Entity()
 export class Shop extends BaseEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn()
   public id: string;
 
   @Column()

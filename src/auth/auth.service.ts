@@ -1,16 +1,18 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import { RegisterDto } from './dto/register.dto';
-import { BCRYPT_HASH_ROUND } from 'src/utils/constants';
+import { BCRYPT_HASH_ROUND, UserEnum } from 'src/utils/constants';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/user/entities/user.entity';
+import { log } from 'console';
+import { ShopService } from 'src/shop/shop.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
-    // private mailService: MailService,
+    private shopService: ShopService,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -24,7 +26,13 @@ export class AuthService {
   }
 
   public async getAuthenticatedUser(email: string, hashedPassword: string) {
-    const user = await this.userService.findUserByEmail(email);
+    let user = null;
+    try {
+      user = await this.userService.findUserByEmail(email);
+    } catch (error) {
+      user = await this.shopService.findShopByEmail(email);
+    }
+
     const isPasswordMatching = await user.comparePasswords(
       user.password,
       hashedPassword,
@@ -38,6 +46,33 @@ export class AuthService {
     return user;
   }
 
+  public async getUser(email: string) {
+    let user = null;
+    try {
+      user = await this.userService.findUserByEmail(email);
+    } catch (error) {
+      user = await this.shopService.findShopByEmail(email);
+    }
+    return user;
+  }
+
+  public async getAuthenticatedShop(email: string, hashedPassword: string) {
+    const shop = await this.shopService.findShopByEmail(email);
+
+    const isPasswordMatching = await shop.comparePasswords(
+      shop.password,
+      hashedPassword,
+    );
+    console.log('hashed');
+    if (!isPasswordMatching) {
+      throw new HttpException(
+        'Wrong credentials provided',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return shop;
+  }
+
   async registerNewUser(registerUserDto: RegisterDto) {
     const hashedPass = await bcrypt.hash(
       registerUserDto.password,
@@ -49,7 +84,7 @@ export class AuthService {
     };
     try {
       const newUser = await this.userService.create(newUserDetails);
-      return newUser;
+      return this.loginUser(newUser);
     } catch (error) {
       // if (error?.code == MYSQL_ERROR_CODES.ER_DUP_ENTRY) {
       //   throw new HttpException(error?.sqlMessage, HttpStatus.BAD_REQUEST);

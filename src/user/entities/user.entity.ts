@@ -13,13 +13,15 @@ import { UserEnum } from 'src/utils/constants';
   name: '_user',
 })
 export class User extends BaseEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn()
   public id: string;
 
   @Column()
   public name: string;
 
-  @Column()
+  @Column({
+    unique: true,
+  })
   public email: string;
 
   @Column()
@@ -28,7 +30,9 @@ export class User extends BaseEntity {
   @Column()
   public password: string;
 
-  @Column()
+  @Column({
+    unique: true,
+  })
   public phoneNo: string;
 
   @Column({

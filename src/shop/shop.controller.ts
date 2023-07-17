@@ -17,8 +17,13 @@ export class ShopController {
   constructor(private readonly shopService: ShopService) {}
 
   @Post()
-  create(@Body() createShopDto: CreateShopDto) {
-    return this.shopService.create(createShopDto);
+  async create(@Body() createShopDto: CreateShopDto) {
+    const data = await this.shopService.create(createShopDto);
+    return {
+      success: true,
+      message: 'shop created successfully',
+      data,
+    };
   }
 
   @Get()

@@ -8,9 +8,11 @@ services:
       - $PORT:$PORT
     depends_on:
       - db
+    networks:
+      - postgres
     volumes:
       - .:/user/src/app
-      - /user/src/app/node_modules
+      # - /user/src/app/node_modules
     command: yarn start:dev
 
   db:

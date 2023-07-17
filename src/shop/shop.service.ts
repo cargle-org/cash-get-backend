@@ -3,12 +3,14 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
 import { CreateShopDto } from './dto/create-shop.dto';
 import { UpdateShopDto } from './dto/update-shop.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Shop } from './entities/shop.entity';
 import { Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
+import { BCRYPT_HASH_ROUND } from 'src/utils/constants';
 
 @Injectable()
 export class ShopService {
@@ -18,8 +20,16 @@ export class ShopService {
   ) {}
 
   async create(createShopDto: CreateShopDto) {
+    const hashedPass = await bcrypt.hash(
+      createShopDto.password,
+      BCRYPT_HASH_ROUND,
+    );
+    const newShopDetails = {
+      ...createShopDto,
+      password: hashedPass,
+    };
     try {
-      const newShop = await this.shopRepository.save(createShopDto);
+      const newShop = await this.shopRepository.save(newShopDetails);
       return newShop;
     } catch (error) {
       throw new InternalServerErrorException();
@@ -44,7 +54,6 @@ export class ShopService {
     if (!shop) {
       throw new NotFoundException();
     }
-
     return shop;
   }
 

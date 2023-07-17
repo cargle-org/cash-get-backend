@@ -8,6 +8,7 @@ import { OrderModule } from './order/order.module';
 import { ShopModule } from './shop/shop.module';
 import { ConfigModule } from '@nestjs/config';
 import { validate } from './utils/env.valiadtion';
+import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { validate } from './utils/env.valiadtion';
       isGlobal: true,
       validate,
     }),
+    FirebaseModule,
   ],
   controllers: [AppController],
   providers: [AppService],
