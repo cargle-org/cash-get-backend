@@ -9,7 +9,6 @@ services:
     volumes:
       - .:/user/src/app
       # - /user/src/app/node_modules
-    command: yarn start:dev
 
   # db:
   #   image: postgres:latest
