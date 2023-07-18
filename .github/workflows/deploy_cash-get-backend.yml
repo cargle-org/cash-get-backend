@@ -18,4 +18,4 @@ jobs:
           key: ${{ secrets.DIGITAL_OCEAN_SSH }}
           script: |
             cd test/cash-get
-            echo ${{ vars.ENVIROMENT_VARIABLES }} > .env
+            echo '${{ vars.ENVIROMENT_VARIABLES }}' > .env
