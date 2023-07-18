@@ -19,7 +19,7 @@ jobs:
           script: |
             docker system prune --force
             cd cargle/cash-get
-            git checkout develop
+            git checkout deploy
             git pull
             echo "${{ vars.ENVIROMENT_VARIABLES }}" > .env
             docker-compose build
