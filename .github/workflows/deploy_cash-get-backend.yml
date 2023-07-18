@@ -19,4 +19,4 @@ jobs:
           script: |
             mkdir test
             mkdir test/cash-get
-            cat ${{ env.ENVIROMENT_VARIABLES }} >> .env
+            echo ${{ env.ENVIROMENT_VARIABLES }} >> .env
