@@ -22,7 +22,6 @@ jobs:
             git checkout deploy
             git pull
             echo "${{ vars.ENVIROMENT_VARIABLES }}" > .env
-            docker-compose build
             docker-compose down
-            systemctl restart cash-get
+            docker-compose up --build
             exit
