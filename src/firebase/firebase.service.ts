@@ -10,7 +10,9 @@ export class FirebaseService {
     this.firebaseApp = firebase.initializeApp({
       credential: firebase.credential.cert({
         clientEmail: configService.get('FIREBASE_CLIENT_EMAIL'),
-        privateKey: configService.get('FIREBASE_PRIVATE_KEY'),
+        privateKey: configService
+          .get<string>('FIREBASE_PRIVATE_KEY')
+          .replace(/\\n/g, '\n'),
         projectId: configService.get('FIREBASE_PROJECT_ID'),
       }),
       databaseURL: configService.get('FIREBASE_DATABASE_URL'),
