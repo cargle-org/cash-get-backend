@@ -17,6 +17,5 @@ jobs:
           username: ${{ secrets.DIGITAL_OCEAN_USERNAME }}
           key: ${{ secrets.DIGITAL_OCEAN_SSH }}
           script: |
-            mkdir test
-            mkdir test/cash-get
+            cd test/cash-get
             echo ${{ env.ENVIROMENT_VARIABLES }} >> .env
