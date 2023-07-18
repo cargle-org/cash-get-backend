@@ -36,6 +36,3 @@ services:
   #     - PGADMIN_DEFAULT_EMAIL=admin@cash-get.com
   #     - PGADMIN_DEFAULT_PASSWORD=admin
 
-networks:
-  postgres:
-    driver: bridge

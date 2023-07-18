@@ -20,4 +20,5 @@ jobs:
             cd cargle/cash-get
             git clone git@github.com:cargle-org/cash-get-backend.git .
             echo "${{ vars.ENVIROMENT_VARIABLES }}" > .env
-            docker-compose up --build
+            docker-compose down
+            docker-compose up -d
