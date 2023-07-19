@@ -6,8 +6,8 @@ services:
     env_file: .env
     ports:
       - $PORT:$PORT
-    volumes:
-      - .:/user/src/app
+    # volumes:
+      # - .:/user/src/app
       # - /user/src/app/node_modules
 
   # db:
