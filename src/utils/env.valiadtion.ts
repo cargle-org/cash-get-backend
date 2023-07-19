@@ -67,6 +67,10 @@ class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   FIREBASE_CLIENT_EMAIL: string;
+
+  @IsString()
+  @IsNotEmpty()
+  POSTGRES_CERT: string;
 }
 
 export function validate(config: Record<string, unknown>) {
