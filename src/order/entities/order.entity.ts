@@ -57,6 +57,9 @@ export class Order extends BaseEntity {
   })
   shopConfirmed: boolean;
 
+  @Column()
+  deliveryPeriod: Date;
+
   @Column({
     nullable: true,
   })

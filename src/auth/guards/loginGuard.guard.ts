@@ -21,7 +21,6 @@ export class LocalAuthGuard extends AuthGuard('local') {
     const errorMessages = errors.flatMap(({ constraints }) =>
       Object.values(constraints),
     );
-
     if (errorMessages.length > 0) {
       // return bad request if validation fails
       response.status(HttpStatus.BAD_REQUEST).send({

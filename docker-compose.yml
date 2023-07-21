@@ -10,28 +10,36 @@ services:
       # - .:/user/src/app
       # - /user/src/app/node_modules
 
-  # db:
-  #   image: postgres:latest
-  #   networks:
-  #     - postgres
-  #   ports:
-  #     - 5432:5432
-  #   volumes:
-  #     - db:/data/postgres
-  #   environment:
-  #     - POSTGRES_USER=admin
-  #     - POSTGRES_PASSWORD=admin
-  #     - POSTGRES_DB=cash-get
+#   db:
+#     image: postgres:latest
+#     networks:
+#       - postgres
+#     ports:
+#       - 5432:5432
+#     volumes:
+#       - db:/data/postgres
+#     environment:
+#       - POSTGRES_USER=admin
+#       - POSTGRES_PASSWORD=admin
+#       - POSTGRES_DB=cash-get
 
-  # pgadmin:
-  #   image: dpage/pgadmin4:6.18
-  #   networks:
-  #     - postgres
-  #   ports:
-  #     - "8080:80"
-  #   volumes:
-  #     - pgadmin-data:/var/lib/pgadmin
-  #   environment:
-  #     - PGADMIN_DEFAULT_EMAIL=admin@cash-get.com
-  #     - PGADMIN_DEFAULT_PASSWORD=admin
+#   pgadmin:
+#     image: dpage/pgadmin4:6.18
+#     networks:
+#       - postgres
+#     ports:
+#       - "8080:80"
+#     volumes:
+#       - pgadmin-data:/var/lib/pgadmin
+#     environment:
+#       - PGADMIN_DEFAULT_EMAIL=admin@cash-get.com
+#       - PGADMIN_DEFAULT_PASSWORD=admin
+
+# networks:
+#   postgres:
+#     driver: bridge
+
+# volumes:
+#   db:
+#   pgadmin-data:
 

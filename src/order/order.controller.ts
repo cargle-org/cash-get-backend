@@ -13,6 +13,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateKeyDto } from './dto/update-key.dto';
+import { AcceptOrderDto } from './dto/accept-order.dto';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('order')
@@ -42,6 +43,22 @@ export class OrderController {
     const data = await this.orderService.findOne(id);
     return {
       message: 'Order fetched successfully',
+      success: true,
+      data,
+    };
+  }
+
+  @Post(':id/acceptOrder')
+  async acceptAgent(
+    @Body() acceptOrder: AcceptOrderDto,
+    @Param('id') orderId: string,
+  ) {
+    const data = await this.orderService.agentAccept(
+      orderId,
+      acceptOrder.agentId,
+    );
+    return {
+      message: 'Order accepted successfully',
       success: true,
       data,
     };
@@ -82,7 +99,11 @@ export class OrderController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.orderService.remove(+id);
+  async remove(@Param('id') id: string) {
+    await this.orderService.remove(id);
+    return {
+      message: 'Order Deleted successfully',
+      success: true,
+    };
   }
 }

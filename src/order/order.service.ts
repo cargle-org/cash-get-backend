@@ -12,7 +12,6 @@ import { Order } from './entities/order.entity';
 import { Repository } from 'typeorm';
 import { ShopService } from 'src/shop/shop.service';
 import { UserService } from 'src/user/user.service';
-import * as CryptoJs from 'crypto-js';
 import { ConfigService } from '@nestjs/config';
 import { KEY_LENGTH, orderStatusEnum } from 'src/utils/constants';
 import { FirebaseService } from 'src/firebase/firebase.service';
@@ -49,6 +48,7 @@ export class OrderService {
       shopId: shop.id,
       amount: newOrder.amount,
       status: newOrder.status,
+      deliveryPeriod: newOrder.deliveryPeriod,
       agentName: null,
       agentId: null,
       agentNo: null,
@@ -69,6 +69,24 @@ export class OrderService {
     order.agent = agent;
     order.status = orderStatusEnum.IN_PROGRESS;
 
+    const firebaseOrderRef = this.firebaseService.db().ref('order');
+    firebaseOrderRef.on('value', (snapshot) => {
+      snapshot.forEach((childSnapshot) => {
+        if (childSnapshot.val().id == orderId) {
+          firebaseOrderRef.child(childSnapshot.key).set({
+            id: order.id,
+            shopId: order.shop.id,
+            amount: order.amount,
+            status: order.status,
+            deliveryPeriod: order.deliveryPeriod,
+            agentName: order.agent.name,
+            agentId: order.agent.id,
+            agentNo: order.agent.phoneNo,
+          });
+        }
+      });
+    });
+
     await order.save();
 
     return order;
@@ -81,6 +99,24 @@ export class OrderService {
       order.agentConfirmed = true;
       if (order.shopConfirmed) {
         order.status = orderStatusEnum.COMPLETED;
+
+        const firebaseOrderRef = this.firebaseService.db().ref('order');
+        firebaseOrderRef.on('value', (snapshot) => {
+          snapshot.forEach((childSnapshot) => {
+            if (childSnapshot.val().id == orderId) {
+              firebaseOrderRef.child(childSnapshot.key).set({
+                id: order.id,
+                shopId: order.shop.id,
+                amount: order.amount,
+                status: order.status,
+                deliveryPeriod: order.deliveryPeriod,
+                agentName: order.agent.name,
+                agentId: order.agent.id,
+                agentNo: order.agent.phoneNo,
+              });
+            }
+          });
+        });
       }
     } else {
       throw new ForbiddenException('Wrong Agent Key');
@@ -98,6 +134,24 @@ export class OrderService {
       order.shopConfirmed = true;
       if (order.agentConfirmed) {
         order.status = orderStatusEnum.COMPLETED;
+
+        const firebaseOrderRef = this.firebaseService.db().ref('order');
+        firebaseOrderRef.on('value', (snapshot) => {
+          snapshot.forEach((childSnapshot) => {
+            if (childSnapshot.val().id == orderId) {
+              firebaseOrderRef.child(childSnapshot.key).set({
+                id: order.id,
+                shopId: order.shop.id,
+                amount: order.amount,
+                status: order.status,
+                deliveryPeriod: order.deliveryPeriod,
+                agentName: order.agent.name,
+                agentId: order.agent.id,
+                agentNo: order.agent.phoneNo,
+              });
+            }
+          });
+        });
       }
     } else {
       throw new ForbiddenException('Wrong Shop Key');
@@ -131,7 +185,18 @@ export class OrderService {
     return `This action updates a #${id} order`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} order`;
+  async remove(orderId: string) {
+    const deleteResponse = await this.orderRepository.delete(orderId);
+    const firebaseOrderRef = this.firebaseService.db().ref('order');
+    firebaseOrderRef.on('value', (snapshot) => {
+      snapshot.forEach((childSnapshot) => {
+        if (childSnapshot.val().id == orderId) {
+          firebaseOrderRef.child(childSnapshot.key).remove();
+        }
+      });
+    });
+    if (!deleteResponse.affected) {
+      throw new NotFoundException('Order not found');
+    }
   }
 }
