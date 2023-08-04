@@ -30,4 +30,8 @@ export class FirebaseService {
   db = (): firebase.database.Database => {
     return this.firebaseApp.database();
   };
+
+  messaging = (): firebase.messaging.Messaging => {
+    return this.firebaseApp.messaging();
+  };
 }

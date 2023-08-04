@@ -3,6 +3,7 @@ services:
   cash-get-api:
     build:
       context: .
+    restart: always
     env_file: .env
     ports:
       - $PORT:$PORT

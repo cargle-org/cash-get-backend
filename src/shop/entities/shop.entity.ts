@@ -40,6 +40,12 @@ export class Shop extends BaseEntity {
   })
   public role: UserEnum;
 
+  @Column({
+    type: 'simple-array',
+    default: [],
+  })
+  public notificationToken: string[];
+
   @ManyToMany(() => User)
   @JoinTable()
   agents: User[];

@@ -12,11 +12,13 @@ import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { BCRYPT_HASH_ROUND } from 'src/utils/constants';
+import { FirebaseService } from 'src/firebase/firebase.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    private readonly firebaseService: FirebaseService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -55,8 +57,18 @@ export class UserService {
     return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const agent = await this.findOne(id);
+    for (const key in updateUserDto) {
+      if (key === 'password') {
+        const hashedPass = await bcrypt.hash(
+          updateUserDto.password,
+          BCRYPT_HASH_ROUND,
+        );
+        agent.password = hashedPass;
+      }
+      agent[key] = updateUserDto[key];
+    }
   }
 
   async remove(userId: string) {
@@ -78,5 +90,18 @@ export class UserService {
     }
 
     return user;
+  }
+
+  async updateAgentNotificationToken(
+    agentId: string,
+    notificationToken: string,
+  ) {
+    const agent = await this.findOne(agentId);
+    agent.notificationToken.push(notificationToken);
+    await agent.save();
+    this.firebaseService
+      .messaging()
+      .subscribeToTopic(notificationToken, 'agent');
+    return agent;
   }
 }

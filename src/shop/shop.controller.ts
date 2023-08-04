@@ -11,6 +11,7 @@ import { ShopService } from './shop.service';
 import { CreateShopDto } from './dto/create-shop.dto';
 import { UpdateShopDto } from './dto/update-shop.dto';
 import { UpdateAgentDto } from './dto/update-agent.dto';
+import { UpdateNotificationDto } from './dto/update-notifiaction-token.dto';
 
 @Controller('shop')
 export class ShopController {
@@ -38,7 +39,12 @@ export class ShopController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateShopDto: UpdateShopDto) {
-    return this.shopService.update(+id, updateShopDto);
+    const data = this.shopService.update(id, updateShopDto);
+    return {
+      success: true,
+      message: 'agent updated successfully',
+      data,
+    };
   }
 
   @Delete(':id')
@@ -60,5 +66,21 @@ export class ShopController {
     @Body() updateAgentDto: UpdateAgentDto,
   ) {
     return this.shopService.removeAgent(shopId, updateAgentDto.shopId);
+  }
+
+  @Post('/update-notification-token/:shopId')
+  async updateNotificationToken(
+    @Param('shopId') id: string,
+    @Body() updateNotificationDto: UpdateNotificationDto,
+  ) {
+    const data = this.shopService.updateShopNotificationToken(
+      id,
+      updateNotificationDto.notificationToken,
+    );
+    return {
+      success: true,
+      message: 'shop updated successfully',
+      data,
+    };
   }
 }

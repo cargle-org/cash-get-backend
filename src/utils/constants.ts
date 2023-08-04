@@ -10,4 +10,5 @@ export enum orderStatusEnum {
   CREATED = 'CREATED',
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
+  NOT_HANDLED = 'NOT_HANDLED',
 }

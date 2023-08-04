@@ -10,6 +10,7 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateNotificationDto } from './dto/update-notifiaction-token.dto';
 
 @Controller('user')
 export class UserController {
@@ -36,8 +37,32 @@ export class UserController {
   }
 
   @Patch(':userId')
-  update(@Param('userId') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  async update(
+    @Param('userId') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    const data = this.userService.update(id, updateUserDto);
+    return {
+      success: true,
+      message: 'agent updated successfully',
+      data,
+    };
+  }
+
+  @Post('/update-notification-token/:userId')
+  async updateNotificationToken(
+    @Param('userId') id: string,
+    @Body() updateNotificationDto: UpdateNotificationDto,
+  ) {
+    const data = this.userService.updateAgentNotificationToken(
+      id,
+      updateNotificationDto.notificationToken,
+    );
+    return {
+      success: true,
+      message: 'agent updated successfully',
+      data,
+    };
   }
 
   @Delete(':userId')

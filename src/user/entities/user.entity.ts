@@ -42,6 +42,13 @@ export class User extends BaseEntity {
   })
   public role: UserEnum;
 
+  @Column({
+    array: true,
+    type: 'simple-array',
+    default: [],
+  })
+  public notificationToken: string[];
+
   @CreateDateColumn()
   public createdAt: Date;
 

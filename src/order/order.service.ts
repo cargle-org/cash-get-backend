@@ -48,11 +48,35 @@ export class OrderService {
       shopId: shop.id,
       amount: newOrder.amount,
       status: newOrder.status,
-      deliveryPeriod: newOrder.deliveryPeriod,
+      deliveryPeriod: newOrder.deliveryPeriod.toISOString(),
       agentName: null,
       agentId: null,
       agentNo: null,
     });
+    this.firebaseService.messaging().send({
+      data: {
+        id: newOrder.id,
+        shopId: shop.id,
+        amount: newOrder.amount.toString(),
+        status: newOrder.status,
+        deliveryPeriod: newOrder.deliveryPeriod.toISOString(),
+        agentName: null,
+        agentId: null,
+        agentNo: null,
+      },
+      notification: {
+        title: 'New Mopup Request',
+        body: `Shop ${shop.name} has posted a new order`,
+      },
+      topic: 'agent',
+    });
+
+    const currentTime = new Date().getTime();
+    const endTime = new Date(newOrder.deliveryPeriod).getTime();
+
+    setTimeout(() => {
+      this.checkIfHandled(newOrder.id);
+    }, endTime - currentTime);
     return newOrder;
   }
 
@@ -78,7 +102,7 @@ export class OrderService {
             shopId: order.shop.id,
             amount: order.amount,
             status: order.status,
-            deliveryPeriod: order.deliveryPeriod,
+            deliveryPeriod: order.deliveryPeriod.toISOString(),
             agentName: order.agent.name,
             agentId: order.agent.id,
             agentNo: order.agent.phoneNo,
@@ -87,19 +111,51 @@ export class OrderService {
       });
     });
 
-    await order.save();
+    this.firebaseService.messaging().sendEachForMulticast({
+      data: {
+        id: order.id,
+        shopId: order.shop.id,
+        amount: order.amount.toString(),
+        status: order.status,
+        deliveryPeriod: order.deliveryPeriod.toISOString(),
+        agentName: order.agent.name,
+        agentId: order.agent.id,
+        agentNo: order.agent.phoneNo,
+      },
+      notification: {
+        title: 'Mopup Request Accepted',
+        body: `Agent ${agent.name} has accepted your order`,
+      },
+      tokens: agent.notificationToken,
+    });
 
+    await order.save();
     return order;
   }
 
   async agentConfirm(orderId: string, agentKey: string) {
     const order = await this.findOne(orderId);
-
     if (order.agentKey === agentKey) {
       order.agentConfirmed = true;
+      this.firebaseService.messaging().sendEachForMulticast({
+        data: {
+          id: order.id,
+          shopId: order.id,
+          amount: order.amount.toString(),
+          status: order.status,
+          deliveryPeriod: order.deliveryPeriod.toISOString(),
+          agentName: order.agent.name,
+          agentId: order.agent.id,
+          agentNo: order.agent.phoneNo,
+        },
+        notification: {
+          title: 'Agent Confirmed Order',
+          body: `Your Mopup order has been confirmed by agent, please enter Agent key to complete`,
+        },
+        tokens: order.shop.notificationToken,
+      });
       if (order.shopConfirmed) {
         order.status = orderStatusEnum.COMPLETED;
-
         const firebaseOrderRef = this.firebaseService.db().ref('order');
         firebaseOrderRef.on('value', (snapshot) => {
           snapshot.forEach((childSnapshot) => {
@@ -109,13 +165,33 @@ export class OrderService {
                 shopId: order.shop.id,
                 amount: order.amount,
                 status: order.status,
-                deliveryPeriod: order.deliveryPeriod,
+                deliveryPeriod: order.deliveryPeriod.toISOString(),
                 agentName: order.agent.name,
                 agentId: order.agent.id,
                 agentNo: order.agent.phoneNo,
               });
             }
           });
+        });
+
+        this.firebaseService.messaging().sendEachForMulticast({
+          data: {
+            id: order.id,
+            shopId: order.id,
+            amount: order.amount.toString(),
+            status: order.status,
+            deliveryPeriod: order.deliveryPeriod.toISOString(),
+            agentName: order.agent.name,
+            agentId: order.agent.id,
+            agentNo: order.agent.phoneNo,
+          },
+          notification: {
+            title: 'Order Completed',
+            body: `Your Mopup order #${order.id} has been completed`,
+          },
+          tokens: order.shop.notificationToken.concat(
+            order.agent.notificationToken,
+          ),
         });
       }
     } else {
@@ -132,9 +208,25 @@ export class OrderService {
 
     if (order.shopKey === shopKey) {
       order.shopConfirmed = true;
+      this.firebaseService.messaging().sendEachForMulticast({
+        data: {
+          id: order.id,
+          shopId: order.id,
+          amount: order.amount.toString(),
+          status: order.status,
+          deliveryPeriod: order.deliveryPeriod.toISOString(),
+          agentName: order.agent.name,
+          agentId: order.agent.id,
+          agentNo: order.agent.phoneNo,
+        },
+        notification: {
+          title: 'Shop Confirmed Order',
+          body: `Your Mopup order has been confirmed by shop, please enter Shop key to complete`,
+        },
+        tokens: order.shop.notificationToken,
+      });
       if (order.agentConfirmed) {
         order.status = orderStatusEnum.COMPLETED;
-
         const firebaseOrderRef = this.firebaseService.db().ref('order');
         firebaseOrderRef.on('value', (snapshot) => {
           snapshot.forEach((childSnapshot) => {
@@ -144,13 +236,32 @@ export class OrderService {
                 shopId: order.shop.id,
                 amount: order.amount,
                 status: order.status,
-                deliveryPeriod: order.deliveryPeriod,
+                deliveryPeriod: order.deliveryPeriod.toISOString(),
                 agentName: order.agent.name,
                 agentId: order.agent.id,
                 agentNo: order.agent.phoneNo,
               });
             }
           });
+        });
+        this.firebaseService.messaging().sendEachForMulticast({
+          data: {
+            id: order.id,
+            shopId: order.id,
+            amount: order.amount.toString(),
+            status: order.status,
+            deliveryPeriod: order.deliveryPeriod.toISOString(),
+            agentName: order.agent.name,
+            agentId: order.agent.id,
+            agentNo: order.agent.phoneNo,
+          },
+          notification: {
+            title: 'Order Completed',
+            body: `Your Mopup order #${order.id} has been completed`,
+          },
+          tokens: order.shop.notificationToken.concat(
+            order.agent.notificationToken,
+          ),
         });
       }
     } else {
@@ -198,5 +309,33 @@ export class OrderService {
     if (!deleteResponse.affected) {
       throw new NotFoundException('Order not found');
     }
+  }
+
+  private async checkIfHandled(orderId: string) {
+    const order = await this.findOne(orderId);
+    if (!order) {
+      throw new NotFoundException();
+    }
+    if (order.status === orderStatusEnum.CREATED) {
+      order.status = orderStatusEnum.NOT_HANDLED;
+      const firebaseOrderRef = this.firebaseService.db().ref('order');
+      firebaseOrderRef.on('value', (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          if (childSnapshot.val().id == orderId) {
+            firebaseOrderRef.child(childSnapshot.key).set({
+              id: order.id,
+              shopId: order.shop.id,
+              amount: order.amount,
+              status: order.status,
+              deliveryPeriod: order.deliveryPeriod.toISOString(),
+              agentName: null,
+              agentId: null,
+              agentNo: null,
+            });
+          }
+        });
+      });
+    }
+    await order.save();
   }
 }

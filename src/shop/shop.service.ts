@@ -11,11 +11,13 @@ import { Shop } from './entities/shop.entity';
 import { Repository } from 'typeorm';
 import { UserService } from 'src/user/user.service';
 import { BCRYPT_HASH_ROUND } from 'src/utils/constants';
+import { FirebaseService } from 'src/firebase/firebase.service';
 
 @Injectable()
 export class ShopService {
   constructor(
     private readonly userService: UserService,
+    private readonly firebaseService: FirebaseService,
     @InjectRepository(Shop) private readonly shopRepository: Repository<Shop>,
   ) {}
 
@@ -57,8 +59,18 @@ export class ShopService {
     return shop;
   }
 
-  update(id: number, updateShopDto: UpdateShopDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateShopDto: UpdateShopDto) {
+    const shop = await this.findOne(id);
+    for (const key in updateShopDto) {
+      if (key === 'password') {
+        const hashedPass = await bcrypt.hash(
+          updateShopDto.password,
+          BCRYPT_HASH_ROUND,
+        );
+        shop.password = hashedPass;
+      }
+      shop[key] = updateShopDto[key];
+    }
   }
 
   async remove(shopId: string) {
@@ -102,6 +114,16 @@ export class ShopService {
 
     await shop.save();
 
+    return shop;
+  }
+
+  async updateShopNotificationToken(shopId: string, notificationToken: string) {
+    const shop = await this.findOne(shopId);
+    shop.notificationToken.push(notificationToken);
+    await shop.save();
+    this.firebaseService
+      .messaging()
+      .subscribeToTopic(notificationToken, 'shop');
     return shop;
   }
 }
