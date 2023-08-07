@@ -53,16 +53,17 @@ export class OrderService {
       agentId: null,
       agentNo: null,
     });
+
     this.firebaseService.messaging().send({
       data: {
-        id: newOrder.id,
-        shopId: shop.id,
-        amount: newOrder.amount.toString(),
-        status: newOrder.status,
-        deliveryPeriod: newOrder.deliveryPeriod?.toString(),
-        agentName: '',
-        agentId: '',
-        agentNo: '',
+        // id: newOrder.id,
+        // shopId: shop.id,
+        // amount: newOrder.amount.toString(),
+        // status: newOrder.status,
+        // deliveryPeriod: newOrder.deliveryPeriod?.toString(),
+        // agentName: '',
+        // agentId: '',
+        // agentNo: '',
       },
       notification: {
         title: 'New Mopup Request',
@@ -113,14 +114,14 @@ export class OrderService {
 
     this.firebaseService.messaging().sendEachForMulticast({
       data: {
-        id: order.id,
-        shopId: order.shop.id,
-        amount: order.amount.toString(),
-        status: order.status,
-        deliveryPeriod: order.deliveryPeriod.toString(),
-        agentName: order.agent.name,
-        agentId: order.agent.id,
-        agentNo: order.agent.phoneNo,
+        // id: order.id,
+        // shopId: order.shop.id,
+        // amount: order.amount.toString(),
+        // status: order.status,
+        // deliveryPeriod: order.deliveryPeriod.toString(),
+        // agentName: order.agent.name,
+        // agentId: order.agent.id,
+        // agentNo: order.agent.phoneNo,
       },
       notification: {
         title: 'Mopup Request Accepted',
@@ -139,14 +140,14 @@ export class OrderService {
       order.agentConfirmed = true;
       this.firebaseService.messaging().sendEachForMulticast({
         data: {
-          id: order.id,
-          shopId: order.id,
-          amount: order.amount.toString(),
-          status: order.status,
-          deliveryPeriod: order.deliveryPeriod.toString(),
-          agentName: order.agent.name,
-          agentId: order.agent.id,
-          agentNo: order.agent.phoneNo,
+          // id: order.id,
+          // shopId: order.id,
+          // amount: order.amount.toString(),
+          // status: order.status,
+          // deliveryPeriod: order.deliveryPeriod.toString(),
+          // agentName: order.agent.name,
+          // agentId: order.agent.id,
+          // agentNo: order.agent.phoneNo,
         },
         notification: {
           title: 'Agent Confirmed Order',
@@ -176,14 +177,14 @@ export class OrderService {
 
         this.firebaseService.messaging().sendEachForMulticast({
           data: {
-            id: order.id,
-            shopId: order.id,
-            amount: order.amount.toString(),
-            status: order.status,
-            deliveryPeriod: order.deliveryPeriod?.toString(),
-            agentName: order.agent.name,
-            agentId: order.agent.id,
-            agentNo: order.agent.phoneNo,
+            // id: order.id,
+            // shopId: order.id,
+            // amount: order.amount.toString(),
+            // status: order.status,
+            // deliveryPeriod: order.deliveryPeriod?.toString(),
+            // agentName: order.agent.name,
+            // agentId: order.agent.id,
+            // agentNo: order.agent.phoneNo,
           },
           notification: {
             title: 'Order Completed',
@@ -210,14 +211,14 @@ export class OrderService {
       order.shopConfirmed = true;
       this.firebaseService.messaging().sendEachForMulticast({
         data: {
-          id: order.id,
-          shopId: order.id,
-          amount: order.amount.toString(),
-          status: order.status,
-          deliveryPeriod: order.deliveryPeriod?.toString(),
-          agentName: order.agent.name,
-          agentId: order.agent.id,
-          agentNo: order.agent.phoneNo,
+          // id: order.id,
+          // shopId: order.id,
+          // amount: order.amount.toString(),
+          // status: order.status,
+          // deliveryPeriod: order.deliveryPeriod?.toString(),
+          // agentName: order.agent.name,
+          // agentId: order.agent.id,
+          // agentNo: order.agent.phoneNo,
         },
         notification: {
           title: 'Shop Confirmed Order',
@@ -246,14 +247,14 @@ export class OrderService {
         });
         this.firebaseService.messaging().sendEachForMulticast({
           data: {
-            id: order.id,
-            shopId: order.id,
-            amount: order.amount.toString(),
-            status: order.status,
-            deliveryPeriod: order.deliveryPeriod?.toString(),
-            agentName: order.agent.name,
-            agentId: order.agent.id,
-            agentNo: order.agent.phoneNo,
+            // id: order.id,
+            // shopId: order.id,
+            // amount: order.amount.toString(),
+            // status: order.status,
+            // deliveryPeriod: order.deliveryPeriod?.toString(),
+            // agentName: order.agent.name,
+            // agentId: order.agent.id,
+            // agentNo: order.agent.phoneNo,
           },
           notification: {
             title: 'Order Completed',
