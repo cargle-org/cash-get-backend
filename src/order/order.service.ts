@@ -60,9 +60,9 @@ export class OrderService {
         amount: newOrder.amount.toString(),
         status: newOrder.status,
         deliveryPeriod: newOrder.deliveryPeriod?.toString(),
-        agentName: null,
-        agentId: null,
-        agentNo: null,
+        agentName: '',
+        agentId: '',
+        agentNo: '',
       },
       notification: {
         title: 'New Mopup Request',
