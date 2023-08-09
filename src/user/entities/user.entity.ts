@@ -43,7 +43,6 @@ export class User extends BaseEntity {
   public role: UserEnum;
 
   @Column({
-    array: true,
     type: 'simple-array',
     nullable: true,
   })
