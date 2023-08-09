@@ -126,7 +126,7 @@ export class ShopService {
     this.firebaseService
       .messaging()
       .subscribeToTopic(notificationToken, 'shop');
-    console.log(shop);
+    this.logger.log(shop);
     return shop;
   }
 }
