@@ -16,7 +16,7 @@ import { FirebaseService } from 'src/firebase/firebase.service';
 
 @Injectable()
 export class ShopService {
-  private readonly logger = new Logger(ShopService.name);
+  private readonly logger = new Logger('ShopService');
 
   constructor(
     private readonly userService: UserService,
