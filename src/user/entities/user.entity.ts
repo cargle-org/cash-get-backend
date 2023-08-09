@@ -45,7 +45,7 @@ export class User extends BaseEntity {
   @Column({
     array: true,
     type: 'simple-array',
-    default: [],
+    nullable: true,
   })
   public notificationToken: string[];
 

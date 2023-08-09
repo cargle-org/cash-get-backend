@@ -41,8 +41,9 @@ export class Shop extends BaseEntity {
   public role: UserEnum;
 
   @Column({
+    array: true,
     type: 'simple-array',
-    default: [],
+    nullable: true,
   })
   public notificationToken: string[];
 
