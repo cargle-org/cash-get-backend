@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -19,6 +20,7 @@ import { generateKey } from 'src/utils/misc';
 
 @Injectable()
 export class OrderService {
+  private logger = new Logger(OrderService.name);
   constructor(
     private shopService: ShopService,
     private userService: UserService,
@@ -54,7 +56,7 @@ export class OrderService {
       agentNo: null,
     });
 
-    this.firebaseService.messaging().send({
+    const notificationReponse = await this.firebaseService.messaging().send({
       data: {
         // id: newOrder.id,
         // shopId: shop.id,
@@ -72,6 +74,7 @@ export class OrderService {
       topic: 'agent',
     });
 
+    this.logger.log(notificationReponse);
     const currentTime = new Date().getTime();
     const endTime = new Date(newOrder.deliveryPeriod).getTime();
 

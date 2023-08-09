@@ -43,7 +43,7 @@ export class Shop extends BaseEntity {
   @Column({
     array: true,
     type: 'simple-array',
-    nullable: true,
+    default: [],
   })
   public notificationToken: string[];
 
