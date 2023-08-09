@@ -73,7 +73,7 @@ export class ShopController {
     @Param('shopId') id: string,
     @Body() updateNotificationDto: UpdateNotificationDto,
   ) {
-    const data = this.shopService.updateShopNotificationToken(
+    const data = await this.shopService.updateShopNotificationToken(
       id,
       updateNotificationDto.notificationToken,
     );
