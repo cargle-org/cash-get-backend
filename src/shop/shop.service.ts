@@ -16,11 +16,12 @@ import { FirebaseService } from 'src/firebase/firebase.service';
 
 @Injectable()
 export class ShopService {
+  private readonly logger = new Logger(ShopService.name);
+
   constructor(
     private readonly userService: UserService,
     private readonly firebaseService: FirebaseService,
     @InjectRepository(Shop) private readonly shopRepository: Repository<Shop>,
-    private readonly logger = new Logger(ShopService.name),
   ) {}
 
   async create(createShopDto: CreateShopDto) {
