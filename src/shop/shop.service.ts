@@ -122,6 +122,7 @@ export class ShopService {
 
   async updateShopNotificationToken(shopId: string, notificationToken: string) {
     const shop = await this.findOne(shopId);
+    this.logger.log(shop.notificationToken.toString());
     shop.notificationToken = [...shop.notificationToken, notificationToken];
     await shop.save();
     this.firebaseService
