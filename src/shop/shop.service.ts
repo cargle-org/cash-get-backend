@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
@@ -19,6 +20,7 @@ export class ShopService {
     private readonly userService: UserService,
     private readonly firebaseService: FirebaseService,
     @InjectRepository(Shop) private readonly shopRepository: Repository<Shop>,
+    private readonly logger = new Logger(ShopService.name),
   ) {}
 
   async create(createShopDto: CreateShopDto) {
