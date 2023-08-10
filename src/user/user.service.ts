@@ -97,11 +97,13 @@ export class UserService {
     notificationToken: string,
   ) {
     const agent = await this.findOne(agentId);
-    agent.notificationToken = [...agent.notificationToken, notificationToken];
-    await agent.save();
-    this.firebaseService
-      .messaging()
-      .subscribeToTopic(notificationToken, 'agent');
+    if (!agent.notificationToken.includes(notificationToken)) {
+      agent.notificationToken = [...agent.notificationToken, notificationToken];
+      await agent.save();
+      this.firebaseService
+        .messaging()
+        .subscribeToTopic(notificationToken, 'agent');
+    }
     return agent;
   }
 }

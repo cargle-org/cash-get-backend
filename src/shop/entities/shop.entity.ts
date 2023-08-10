@@ -7,7 +7,6 @@ import {
   Entity,
   JoinTable,
   ManyToMany,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -21,7 +20,9 @@ export class Shop extends BaseEntity {
   @Column()
   public name: string;
 
-  @Column()
+  @Column({
+    unique: true,
+  })
   public email: string;
 
   @Column()
@@ -40,9 +41,9 @@ export class Shop extends BaseEntity {
   })
   public role: UserEnum;
 
-  @Column({
-    type: 'simple-array',
-    default: [],
+  @Column('text', {
+    array: true,
+    default: {},
   })
   public notificationToken: string[];
 

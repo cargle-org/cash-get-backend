@@ -42,9 +42,9 @@ export class User extends BaseEntity {
   })
   public role: UserEnum;
 
-  @Column({
-    type: 'simple-array',
-    default: [],
+  @Column('text', {
+    array: true,
+    default: {},
   })
   public notificationToken: string[];
 

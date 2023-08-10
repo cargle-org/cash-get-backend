@@ -54,7 +54,7 @@ export class UserController {
     @Param('userId') id: string,
     @Body() updateNotificationDto: UpdateNotificationDto,
   ) {
-    const data = this.userService.updateAgentNotificationToken(
+    const data = await this.userService.updateAgentNotificationToken(
       id,
       updateNotificationDto.notificationToken,
     );

@@ -16,7 +16,7 @@ import { FirebaseService } from 'src/firebase/firebase.service';
 
 @Injectable()
 export class ShopService {
-  private readonly logger = new Logger('ShopService');
+  private readonly logger = new Logger(ShopService.name);
 
   constructor(
     private readonly userService: UserService,
@@ -122,13 +122,13 @@ export class ShopService {
 
   async updateShopNotificationToken(shopId: string, notificationToken: string) {
     const shop = await this.findOne(shopId);
-    this.logger.log(shop.notificationToken.toString());
-    shop.notificationToken = [...shop.notificationToken, notificationToken];
-    await shop.save();
-    this.firebaseService
-      .messaging()
-      .subscribeToTopic(notificationToken, 'shop');
-    this.logger.log(shop);
+    if (!shop.notificationToken.includes(notificationToken)) {
+      shop.notificationToken = [...shop.notificationToken, notificationToken];
+      await shop.save();
+      this.firebaseService
+        .messaging()
+        .subscribeToTopic(notificationToken, 'shop');
+    }
     return shop;
   }
 }
