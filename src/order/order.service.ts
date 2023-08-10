@@ -130,8 +130,7 @@ export class OrderService {
         title: 'Mopup Request Accepted',
         body: `Agent ${agent.name} has accepted your order`,
       },
-      // tokens: agent.notificationToken,
-      tokens: [],
+      tokens: agent.notificationToken,
     });
 
     await order.save();
@@ -157,8 +156,7 @@ export class OrderService {
           title: 'Agent Confirmed Order',
           body: `Your Mopup order has been confirmed by agent, please enter Agent key to complete`,
         },
-        // tokens: order.shop.notificationToken,
-        tokens: [],
+        tokens: order.shop.notificationToken,
       });
       if (order.shopConfirmed) {
         order.status = orderStatusEnum.COMPLETED;
@@ -195,10 +193,9 @@ export class OrderService {
             title: 'Order Completed',
             body: `Your Mopup order #${order.id} has been completed`,
           },
-          // tokens: order.shop.notificationToken.concat(
-          //   order.agent.notificationToken,
-          // ),
-          tokens: [],
+          tokens: order.shop.notificationToken.concat(
+            order.agent.notificationToken,
+          ),
         });
       }
     } else {
@@ -230,8 +227,7 @@ export class OrderService {
           title: 'Shop Confirmed Order',
           body: `Your Mopup order has been confirmed by shop, please enter Shop key to complete`,
         },
-        // tokens: order.shop.notificationToken,
-        tokens: [],
+        tokens: order.shop.notificationToken,
       });
       if (order.agentConfirmed) {
         order.status = orderStatusEnum.COMPLETED;
@@ -267,10 +263,9 @@ export class OrderService {
             title: 'Order Completed',
             body: `Your Mopup order #${order.id} has been completed`,
           },
-          // tokens: order.shop.notificationToken.concat(
-          //   order.agent.notificationToken,
-          // ),
-          tokens: [],
+          tokens: order.shop.notificationToken.concat(
+            order.agent.notificationToken,
+          ),
         });
       }
     } else {
