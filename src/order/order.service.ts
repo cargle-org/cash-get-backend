@@ -58,14 +58,14 @@ export class OrderService {
 
     const notificationReponse = await this.firebaseService.messaging().send({
       data: {
-        // id: newOrder.id,
-        // shopId: shop.id,
-        // amount: newOrder.amount.toString(),
-        // status: newOrder.status,
-        // deliveryPeriod: newOrder.deliveryPeriod?.toString(),
-        // agentName: '',
-        // agentId: '',
-        // agentNo: '',
+        id: `${newOrder.id}`,
+        shopId: `${shop.id}`,
+        amount: newOrder.amount.toString(),
+        status: newOrder.status,
+        deliveryPeriod: newOrder.deliveryPeriod?.toString(),
+        agentName: '',
+        agentId: '',
+        agentNo: '',
       },
       notification: {
         title: 'New Mopup Request',
@@ -74,7 +74,8 @@ export class OrderService {
       topic: 'agent',
     });
 
-    this.logger.log(notificationReponse);
+    // this.logger.log(notificationReponse);
+    console.log(notificationReponse);
     const currentTime = new Date().getTime();
     const endTime = new Date(newOrder.deliveryPeriod).getTime();
 
