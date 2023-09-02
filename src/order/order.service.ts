@@ -75,7 +75,6 @@ export class OrderService {
     });
 
     // this.logger.log(notificationReponse);
-    console.log(notificationReponse);
     const currentTime = new Date().getTime();
     const endTime = new Date(newOrder.deliveryPeriod).getTime();
 

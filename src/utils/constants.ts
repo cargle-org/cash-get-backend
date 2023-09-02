@@ -1,5 +1,5 @@
 export const BCRYPT_HASH_ROUND = 4;
-export const KEY_LENGTH = 10;
+export const KEY_LENGTH = 5;
 
 export enum UserEnum {
   SHOP = 'SHOP',
