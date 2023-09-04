@@ -50,12 +50,14 @@ export class OrderController {
 
   @Post(':id/acceptOrder')
   async acceptAgent(
-    @Body() acceptOrder: AcceptOrderDto,
+    @Body() acceptOrderDto: AcceptOrderDto,
     @Param('id') orderId: string,
   ) {
     const data = await this.orderService.agentAccept(
       orderId,
-      acceptOrder.agentId,
+      acceptOrderDto.agentId,
+      acceptOrderDto.collectionStatus,
+      acceptOrderDto.amount,
     );
     return {
       message: 'Order accepted successfully',
@@ -67,10 +69,10 @@ export class OrderController {
   @Post(':id/confirmAgent')
   async confirmAgentKey(
     @Body() updateKeyDto: UpdateKeyDto,
-    @Param('id') orderId: string,
+    @Param('id') orderCollectionId: string,
   ) {
     const data = await this.orderService.agentConfirm(
-      orderId,
+      orderCollectionId,
       updateKeyDto.key,
     );
     return {
@@ -83,9 +85,12 @@ export class OrderController {
   @Post(':id/confirmShop')
   async confirmShopKey(
     @Body() updateKeyDto: UpdateKeyDto,
-    @Param('id') orderId: string,
+    @Param('id') orderCollection: string,
   ) {
-    const data = await this.orderService.shopConfirm(orderId, updateKeyDto.key);
+    const data = await this.orderService.shopConfirm(
+      orderCollection,
+      updateKeyDto.key,
+    );
     return {
       message: 'Shop Confirmed successfully',
       success: true,
