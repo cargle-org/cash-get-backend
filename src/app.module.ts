@@ -9,6 +9,7 @@ import { ShopModule } from './shop/shop.module';
 import { ConfigModule } from '@nestjs/config';
 import { validate } from './utils/env.valiadtion';
 import { FirebaseModule } from './firebase/firebase.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { FirebaseModule } from './firebase/firebase.module';
       validate,
     }),
     FirebaseModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

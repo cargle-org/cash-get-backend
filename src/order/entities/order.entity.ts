@@ -1,6 +1,6 @@
 import { Shop } from 'src/shop/entities/shop.entity';
 import { User } from 'src/user/entities/user.entity';
-import { orderStatusEnum } from 'src/utils/constants';
+import { CollectionStatusEnum, OrderStatusEnum } from 'src/utils/constants';
 import {
   BaseEntity,
   Column,
@@ -8,9 +8,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { OrderCollection } from './orderCollection.entity';
 
 @Entity()
 export class Order extends BaseEntity {
@@ -34,43 +36,25 @@ export class Order extends BaseEntity {
   })
   extraInfo: string;
 
-  @ManyToOne(() => User)
-  @JoinColumn()
-  agent: User;
-
   @ManyToOne(() => Shop)
   @JoinColumn()
   shop: Shop;
 
-  @Column({
-    default: false,
-  })
-  agentConfirmed: boolean;
-
-  @Column({
-    nullable: true,
-  })
-  agentKey: string;
-
-  @Column({
-    default: false,
-  })
-  shopConfirmed: boolean;
+  @OneToMany(() => OrderCollection, (orderCollection) => orderCollection.order)
+  orderCollections: OrderCollection[];
 
   @Column()
   deliveryPeriod: Date;
 
   @Column({
-    nullable: true,
-  })
-  shopKey: string;
-
-  @Column({
     type: 'enum',
-    enum: orderStatusEnum,
-    default: orderStatusEnum.CREATED,
+    enum: OrderStatusEnum,
+    default: OrderStatusEnum.CREATED,
   })
-  status: orderStatusEnum;
+  status: OrderStatusEnum;
+
+  @Column({ default: 0 })
+  remainingAmount: number;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -6,9 +6,19 @@ export enum UserEnum {
   AGENT = 'AGENT',
 }
 
-export enum orderStatusEnum {
+export enum OrderStatusEnum {
   CREATED = 'CREATED',
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
   NOT_HANDLED = 'NOT_HANDLED',
+}
+
+export enum CollectionProgressStatusEnum {
+  STARTED = 'STARTED',
+  COMPLETED = 'COMPLETED',
+}
+
+export enum CollectionStatusEnum {
+  PARTIAL = 'PARTIAL',
+  FULL = 'FULL',
 }
