@@ -114,6 +114,7 @@ export class OrderService {
       agent: agent,
       agentKey: agentKey,
       shopKey: shopKey,
+      deliveryPeriod: order.deliveryPeriod,
     };
     const orderCollection = await this.orderCollectionRepository.save(
       orderCollectionDetails,

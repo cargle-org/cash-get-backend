@@ -9,7 +9,7 @@ import { CollectionStatusEnum } from 'src/utils/constants';
 
 export class AcceptOrderDto {
   @IsString() @IsNotEmpty() agentId: string;
-  @IsNumber() @IsNotEmpty() amount: number;
+  @IsNumber() amount: number;
   @IsEnum(CollectionStatusEnum) collectionStatus: CollectionStatusEnum;
   @IsBoolean() useSpikk: boolean;
 }
