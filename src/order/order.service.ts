@@ -100,23 +100,27 @@ export class OrderService {
     collectionStatus: CollectionStatusEnum,
     amount: number,
   ) {
-    const order = await this.findOne(orderId);
+    const order = await this.orderRepository.findOne({
+      where: {
+        id: orderId,
+      },
+    });
 
-    // if (!order) {
-    //   throw new NotFoundException('Could not find Order');
-    // }
+    if (!order) {
+      throw new NotFoundException('Could not find Order');
+    }
 
     const agent = await this.userService.findOne(agentId);
 
     const agentKey = generateKey(KEY_LENGTH, agent.role);
-    const shopKey = generateKey(KEY_LENGTH, order.shop.role);
+    // const shopKey = generateKey(KEY_LENGTH, order.shop.role);
     const orderCollectionDetails: Partial<OrderCollection> = {
-      order: order.id,
+      order: order,
       collectionStatus: collectionStatus,
       amount: amount,
       agent: agent,
       agentKey: agentKey,
-      shopKey: shopKey,
+      shopKey: 'shopKey',
       deliveryPeriod: order.deliveryPeriod,
     };
 
