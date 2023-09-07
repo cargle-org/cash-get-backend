@@ -38,21 +38,21 @@ export class OrderController {
     return this.orderService.findAll();
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const data = await this.orderService.findOne(id);
-    return {
-      message: 'Order fetched successfully',
-      success: true,
-      data,
-    };
-  }
-
   @Get('/orderCollection/:id')
   async findOneCollection(@Param('id') id: string) {
     const data = await this.orderService.findOneCollection(id);
     return {
       message: 'Order Collection fetched successfully',
+      success: true,
+      data,
+    };
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    const data = await this.orderService.findOne(id);
+    return {
+      message: 'Order fetched successfully',
       success: true,
       data,
     };
