@@ -45,6 +45,7 @@ export class OrderService {
       .db()
       .ref('orderCollection');
   }
+
   async create(shopId: string, createOrderDto: CreateOrderDto) {
     const shop = await this.shopService.findOne(shopId);
     const orderDetails: Partial<Order> = {
@@ -111,16 +112,17 @@ export class OrderService {
     }
 
     const agent = await this.userService.findOne(agentId);
+    const shop = await this.shopService.findOne(order.shop as any);
 
     const agentKey = generateKey(KEY_LENGTH, agent.role);
-    // const shopKey = generateKey(KEY_LENGTH, order.shop.role);
+    const shopKey = generateKey(KEY_LENGTH, shop.role);
     const orderCollectionDetails: Partial<OrderCollection> = {
       order: order,
       collectionStatus: collectionStatus,
       amount: amount,
       agent: agent,
       agentKey: agentKey,
-      shopKey: 'shopKey',
+      shopKey: shopKey,
       deliveryPeriod: order.deliveryPeriod,
     };
 
@@ -134,7 +136,7 @@ export class OrderService {
         if (childSnapshot.val().id == orderId) {
           this.firebaseOrderRef.child(childSnapshot.key).set({
             id: order.id,
-            shopId: order.shop.id,
+            shopId: shop.id,
             amount: order.amount,
             status: order.status,
             deliveryPeriod: order.deliveryPeriod?.toString(),
@@ -147,9 +149,9 @@ export class OrderService {
     this.firebaseOrderCollectionRef.push({
       id: orderCollection.id,
       orderId: order.id,
-      shopName: order.shop.name,
-      shopAddress: order.shop.address,
-      shopId: order.shop.id,
+      shopName: shop.name,
+      shopAddress: shop.address,
+      shopId: shop.id,
       amount: amount,
       agentId: agent.id,
       agentName: orderCollection.agent.name,
