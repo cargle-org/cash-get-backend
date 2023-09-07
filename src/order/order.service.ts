@@ -100,17 +100,12 @@ export class OrderService {
     collectionStatus: CollectionStatusEnum,
     amount: number,
   ) {
-    const order = await this.orderRepository.findOne({
-      where: {
-        id: orderId,
-      },
-    });
+    const order = await this.findOne(orderId);
 
-    if (!order) {
-      throw new NotFoundException('Could not find Order');
-    }
-    order.status = OrderStatusEnum.IN_PROGRESS;
-    order.remainingAmount = order.remainingAmount - amount;
+    // if (!order) {
+    //   throw new NotFoundException('Could not find Order');
+    // }
+
     const agent = await this.userService.findOne(agentId);
 
     const agentKey = generateKey(KEY_LENGTH, agent.role);
@@ -124,6 +119,9 @@ export class OrderService {
       shopKey: shopKey,
       deliveryPeriod: order.deliveryPeriod,
     };
+
+    order.status = OrderStatusEnum.IN_PROGRESS;
+    order.remainingAmount = order.remainingAmount - amount;
     const orderCollection = await this.orderCollectionRepository.save(
       orderCollectionDetails,
     );
