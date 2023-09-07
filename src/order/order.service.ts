@@ -4,7 +4,6 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -264,7 +263,11 @@ export class OrderService {
 
   async shopConfirm(orderCollectionId: string, shopKey: string) {
     const orderCollection = await this.findOneCollection(orderCollectionId);
-    const order = await this.findOne(orderCollection.order.id);
+    const order = await this.orderRepository.findOne({
+      where: {
+        id: orderCollection.order.id,
+      },
+    });
 
     if (orderCollection.shopKey === shopKey) {
       orderCollection.shopConfirmed = true;
