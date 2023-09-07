@@ -48,6 +48,16 @@ export class OrderController {
     };
   }
 
+  @Get('/orderCollection/:id')
+  async findOneCollection(@Param('id') id: string) {
+    const data = await this.orderService.findOneCollection(id);
+    return {
+      message: 'Order Collection fetched successfully',
+      success: true,
+      data,
+    };
+  }
+
   @Post(':id/acceptOrder')
   async acceptAgent(
     @Body() acceptOrderDto: AcceptOrderDto,

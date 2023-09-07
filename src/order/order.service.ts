@@ -136,6 +136,9 @@ export class OrderService {
 
     this.firebaseOrderCollectionRef.push({
       id: orderCollection.id,
+      orderId: order.id,
+      shopName: order.shop.name,
+      shopAddress: order.shop.address,
       shopId: order.shop.id,
       amount: amount,
       agentId: agent.id,
@@ -143,7 +146,7 @@ export class OrderService {
       agentNo: orderCollection.agent.phoneNo,
       collectionStatus: orderCollection.collectionStatus,
       collectionProgressStatus: orderCollection.collectionProgressStatus,
-      deliveryPeriod: order.deliveryPeriod?.toString(),
+      deliveryPeriod: order.deliveryPeriod?.toISOString(),
     });
 
     // this.firebaseService.messaging().sendEachForMulticast({
