@@ -111,7 +111,7 @@ export class OrderService {
     const agentKey = generateKey(KEY_LENGTH, agent.role);
     const shopKey = generateKey(KEY_LENGTH, order.shop.role);
     const orderCollectionDetails: Partial<OrderCollection> = {
-      order: order,
+      order: order.id,
       collectionStatus: collectionStatus,
       amount: amount,
       agent: agent,
@@ -179,7 +179,7 @@ export class OrderService {
 
   async agentConfirm(orderCollectionId: string, agentKey: string) {
     const orderCollection = await this.findOneCollection(orderCollectionId);
-    const order = await this.findOne(orderCollection.order.id);
+    const order = await this.findOne((orderCollection.order as Order).id);
     if (orderCollection.agentKey === agentKey) {
       orderCollection.agentConfirmed = true;
       // this.firebaseService.messaging().sendEachForMulticast({
@@ -270,7 +270,7 @@ export class OrderService {
 
   async shopConfirm(orderCollectionId: string, shopKey: string) {
     const orderCollection = await this.findOneCollection(orderCollectionId);
-    const order = await this.findOne(orderCollection.order.id);
+    const order = await this.findOne((orderCollection.order as Order).id);
 
     if (orderCollection.shopKey === shopKey) {
       orderCollection.shopConfirmed = true;

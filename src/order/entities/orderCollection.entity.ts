@@ -31,7 +31,7 @@ export class OrderCollection extends BaseEntity {
 
   @ManyToOne(() => Order)
   @JoinColumn()
-  order: Order;
+  order: Order | string;
 
   @Column()
   deliveryPeriod: Date;
