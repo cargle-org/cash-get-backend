@@ -13,12 +13,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { BCRYPT_HASH_ROUND } from 'src/utils/constants';
 import { FirebaseService } from 'src/firebase/firebase.service';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
-    private readonly firebaseService: FirebaseService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -100,9 +101,7 @@ export class UserService {
     if (!agent.notificationToken.includes(notificationToken)) {
       agent.notificationToken = [...agent.notificationToken, notificationToken];
       await agent.save();
-      this.firebaseService
-        .messaging()
-        .subscribeToTopic(notificationToken, 'agent');
+      this.notificationService.addToAgents(agent.notificationToken);
     }
     return agent;
   }

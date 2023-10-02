@@ -24,6 +24,7 @@ import { FirebaseService } from 'src/firebase/firebase.service';
 import { generateKey } from 'src/utils/misc';
 import { Reference } from '@firebase/database-types';
 import { OrderCollection } from './entities/orderCollection.entity';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class OrderService {
@@ -39,6 +40,7 @@ export class OrderService {
     @InjectRepository(OrderCollection)
     private readonly orderCollectionRepository: Repository<OrderCollection>,
     private readonly firebaseService: FirebaseService,
+    private readonly notificationService: NotificationService,
   ) {
     this.firebaseOrderRef = firebaseService.db().ref('order');
     this.firebaseOrderCollectionRef = firebaseService
@@ -85,6 +87,22 @@ export class OrderService {
     //   },
     //   topic: 'agent',
     // });
+    this.notificationService.sendNotificationToAgents(
+      {
+        title: 'New Mopup Request',
+        body: `Shop ${shop.name} has posted a new order`,
+      },
+      {
+        id: `${newOrder.id}`,
+        shopId: `${shop.id}`,
+        amount: newOrder.amount.toString(),
+        status: newOrder.status,
+        deliveryPeriod: newOrder.deliveryPeriod?.toString(),
+        agentName: '',
+        agentId: '',
+        agentNo: '',
+      },
+    );
 
     const currentTime = new Date().getTime();
     const endTime = new Date(newOrder.deliveryPeriod).getTime();
@@ -178,6 +196,23 @@ export class OrderService {
     //   },
     //   tokens: agent.notificationToken,
     // });
+    this.notificationService.sendNotificationToOne(
+      {
+        title: 'Mopup Request Accepted',
+        body: `Agent ${agent.name} has accepted your order`,
+      },
+      {
+        id: order.id,
+        shopId: order.shop.id,
+        amount: amount.toString(),
+        status: order.status,
+        deliveryPeriod: order.deliveryPeriod.toString(),
+        agentName: orderCollection.agent.name,
+        agentId: orderCollection.agent.phoneNo,
+        agentNo: orderCollection.agent.phoneNo,
+      },
+      agent.notificationToken,
+    );
 
     await order.save();
     return order;
@@ -188,23 +223,6 @@ export class OrderService {
     const order = await this.findOne((orderCollection.order as Order).id);
     if (orderCollection.agentKey === agentKey) {
       orderCollection.agentConfirmed = true;
-      // this.firebaseService.messaging().sendEachForMulticast({
-      //   data: {
-      //     // id: order.id,
-      //     // shopId: order.id,
-      //     // amount: order.amount.toString(),
-      //     // status: order.status,
-      //     // deliveryPeriod: order.deliveryPeriod.toString(),
-      //     // agentName: order.agent.name,
-      //     // agentId: order.agent.id,
-      //     // agentNo: order.agent.phoneNo,
-      //   },
-      //   notification: {
-      //     title: 'Agent Confirmed Order',
-      //     body: `Your Mopup order has been confirmed by agent, please enter Agent key to complete`,
-      //   },
-      //   tokens: orderCollection.shop.notificationToken,
-      // });
       if (orderCollection.shopConfirmed) {
         orderCollection.collectionProgressStatus =
           CollectionProgressStatusEnum.COMPLETED;
@@ -226,26 +244,26 @@ export class OrderService {
             }
           });
         });
-
-        // this.firebaseService.messaging().sendEachForMulticast({
-        //   data: {
-        //     // id: order.id,
-        //     // shopId: order.id,
-        //     // amount: order.amount.toString(),
-        //     // status: order.status,
-        //     // deliveryPeriod: order.deliveryPeriod?.toString(),
-        //     // agentName: order.agent.name,
-        //     // agentId: order.agent.id,
-        //     // agentNo: order.agent.phoneNo,
-        //   },
-        //   notification: {
-        //     title: 'Order Completed',
-        //     body: `Your Mopup order #${orderCollection.id} has been completed`,
-        //   },
-        //   tokens: order.shop.notificationToken.concat(
-        //     orderCollection.agent.notificationToken,
-        //   ),
-        // });
+        this.notificationService.sendNotificationToOne(
+          {
+            title: 'Order Completed',
+            body: `Your Mopup order #${orderCollection.id} has been completed`,
+          },
+          {
+            id: orderCollection.id,
+            shopId: order.shop.id,
+            amount: orderCollection.amount,
+            agentId: orderCollection.agent.id,
+            agentName: orderCollection.agent.name,
+            agentNo: orderCollection.agent.phoneNo,
+            collectionStatus: orderCollection.collectionStatus,
+            collectionProgressStatus: orderCollection.collectionProgressStatus,
+            deliveryPeriod: order.deliveryPeriod?.toString(),
+          },
+          order.shop.notificationToken.concat(
+            orderCollection.agent.notificationToken,
+          ),
+        );
       }
       if (orderCollection.collectionStatus == CollectionStatusEnum.FULL) {
         order.status = OrderStatusEnum.COMPLETED;
@@ -263,6 +281,24 @@ export class OrderService {
             }
           });
         });
+        this.notificationService.sendNotificationToOne(
+          {
+            title: 'Agent Confirmed Order',
+            body: `Your Mopup order has been confirmed by agent, please enter Agent key to complete`,
+          },
+          {
+            id: orderCollection.id,
+            shopId: order.shop.id,
+            amount: orderCollection.amount,
+            agentId: orderCollection.agent.id,
+            agentName: orderCollection.agent.name,
+            agentNo: orderCollection.agent.phoneNo,
+            collectionStatus: orderCollection.collectionStatus,
+            collectionProgressStatus: orderCollection.collectionProgressStatus,
+            deliveryPeriod: order.deliveryPeriod?.toString(),
+          },
+          order.shop.notificationToken,
+        );
       }
     } else {
       throw new ForbiddenException('Wrong Agent Key');
@@ -280,23 +316,6 @@ export class OrderService {
 
     if (orderCollection.shopKey === shopKey) {
       orderCollection.shopConfirmed = true;
-      // this.firebaseService.messaging().sendEachForMulticast({
-      //   data: {
-      //     // id: order.id,
-      //     // shopId: order.id,
-      //     // amount: order.amount.toString(),
-      //     // status: order.status,
-      //     // deliveryPeriod: order.deliveryPeriod?.toString(),
-      //     // agentName: order.agent.name,
-      //     // agentId: order.agent.id,
-      //     // agentNo: order.agent.phoneNo,
-      //   },
-      //   notification: {
-      //     title: 'Shop Confirmed Order',
-      //     body: `Your Mopup order has been confirmed by shop, please enter Shop key to complete`,
-      //   },
-      //   tokens: orderCollection.shop.notificationToken,
-      // });
       if (orderCollection.agentConfirmed) {
         orderCollection.collectionProgressStatus =
           CollectionProgressStatusEnum.COMPLETED;
@@ -337,6 +356,26 @@ export class OrderService {
         //     orderCollection.agent.notificationToken,
         //   ),
         // });
+        this.notificationService.sendNotificationToOne(
+          {
+            title: 'Order Completed',
+            body: `Your Mopup order #${orderCollection.id} has been completed`,
+          },
+          {
+            id: orderCollection.id,
+            shopId: order.shop.id,
+            amount: orderCollection.amount,
+            agentId: orderCollection.agent.id,
+            agentName: orderCollection.agent.name,
+            agentNo: orderCollection.agent.phoneNo,
+            collectionStatus: orderCollection.collectionStatus,
+            collectionProgressStatus: orderCollection.collectionProgressStatus,
+            deliveryPeriod: order.deliveryPeriod?.toString(),
+          },
+          order.shop.notificationToken.concat(
+            orderCollection.agent.notificationToken,
+          ),
+        );
       }
       if (orderCollection.collectionStatus == CollectionStatusEnum.FULL) {
         order.status = OrderStatusEnum.COMPLETED;
@@ -353,6 +392,25 @@ export class OrderService {
               });
             }
           });
+          this.notificationService.sendNotificationToOne(
+            {
+              title: 'Shop Confirmed Order',
+              body: `Your Mopup order has been confirmed by shop, please enter Shop key to complete`,
+            },
+            {
+              id: orderCollection.id,
+              shopId: order.shop.id,
+              amount: orderCollection.amount,
+              agentId: orderCollection.agent.id,
+              agentName: orderCollection.agent.name,
+              agentNo: orderCollection.agent.phoneNo,
+              collectionStatus: orderCollection.collectionStatus,
+              collectionProgressStatus:
+                orderCollection.collectionProgressStatus,
+              deliveryPeriod: order.deliveryPeriod?.toString(),
+            },
+            orderCollection.agent.notificationToken,
+          );
         });
       }
     } else {
