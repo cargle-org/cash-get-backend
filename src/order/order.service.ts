@@ -130,7 +130,7 @@ export class OrderService {
     }
 
     const agent = await this.userService.findOne(agentId);
-    const shop = await this.shopService.findOne(order.shop as any);
+    const shop = await this.shopService.findOne(order.shopId);
 
     const agentKey = generateKey(KEY_LENGTH, agent.role);
     const shopKey = generateKey(KEY_LENGTH, shop.role);
@@ -203,7 +203,7 @@ export class OrderService {
       },
       {
         id: order.id,
-        shopId: order.shop.id,
+        shopId: order.shopId,
         amount: amount.toString(),
         status: order.status,
         deliveryPeriod: order.deliveryPeriod.toString(),

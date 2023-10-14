@@ -37,8 +37,13 @@ export class Order extends BaseEntity {
   extraInfo: string;
 
   @ManyToOne(() => Shop)
-  @JoinColumn()
+  @JoinColumn({ name: 'shopId', referencedColumnName: 'id' })
   shop: Shop;
+
+  @Column({
+    nullable: true,
+  })
+  shopId: string;
 
   @OneToMany(() => OrderCollection, (orderCollection) => orderCollection.order)
   orderCollections: OrderCollection[];

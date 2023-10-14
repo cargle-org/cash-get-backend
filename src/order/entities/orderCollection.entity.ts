@@ -30,8 +30,11 @@ export class OrderCollection extends BaseEntity {
   agent: User;
 
   @ManyToOne(() => Order)
-  @JoinColumn()
+  @JoinColumn({ name: 'orderId', referencedColumnName: 'id' })
   order: Order;
+
+  @Column({ nullable: true })
+  orderId: string;
 
   @Column()
   deliveryPeriod: Date;
