@@ -233,10 +233,10 @@ export class OrderService {
             body: `Your Mopup order #${orderCollection.id} has been completed`,
           },
           {
-            id: `${orderCollection.id}`,
+            id: `${order.id}`,
             shopId: `${order.shopId}`,
-            amount: orderCollection.amount,
-            agentId: orderCollection.agent.id,
+            amount: `${orderCollection.amount}`,
+            agentId: `${orderCollection.agent.id}`,
             agentName: orderCollection.agent.name,
             agentNo: orderCollection.agent.phoneNo,
             collectionStatus: orderCollection.collectionStatus,
