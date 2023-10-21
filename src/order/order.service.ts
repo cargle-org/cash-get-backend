@@ -194,7 +194,7 @@ export class OrderService {
         agentId: orderCollection.agent.phoneNo,
         agentNo: orderCollection.agent.phoneNo,
       },
-      agent.notificationToken,
+      agent.notificationToken.concat(shop.notificationToken),
     );
 
     await order.save();
