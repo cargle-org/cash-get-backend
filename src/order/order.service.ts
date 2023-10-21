@@ -179,31 +179,14 @@ export class OrderService {
       deliveryPeriod: order.deliveryPeriod?.toISOString(),
     });
 
-    // this.firebaseService.messaging().sendEachForMulticast({
-    //   data: {
-    //     // id: order.id,
-    //     // shopId: order.shop.id,
-    //     // amount: order.amount.toString(),
-    //     // status: order.status,
-    //     // deliveryPeriod: order.deliveryPeriod.toString(),
-    //     // agentName: order.agent.name,
-    //     // agentId: order.agent.id,
-    //     // agentNo: order.agent.phoneNo,
-    //   },
-    //   notification: {
-    //     title: 'Mopup Request Accepted',
-    //     body: `Agent ${agent.name} has accepted your order`,
-    //   },
-    //   tokens: agent.notificationToken,
-    // });
     this.notificationService.sendNotificationToOne(
       {
         title: 'Mopup Request Accepted',
         body: `Agent ${agent.name} has accepted your order`,
       },
       {
-        id: order.id,
-        shopId: order.shopId,
+        id: `${order.id}`,
+        shopId: `${order.shopId}`,
         amount: amount.toString(),
         status: order.status,
         deliveryPeriod: order.deliveryPeriod.toString(),
@@ -250,8 +233,8 @@ export class OrderService {
             body: `Your Mopup order #${orderCollection.id} has been completed`,
           },
           {
-            id: orderCollection.id,
-            shopId: order.shop.id,
+            id: `${orderCollection.id}`,
+            shopId: `${order.shopId}`,
             amount: orderCollection.amount,
             agentId: orderCollection.agent.id,
             agentName: orderCollection.agent.name,
@@ -287,10 +270,10 @@ export class OrderService {
             body: `Your Mopup order has been confirmed by agent, please enter Agent key to complete`,
           },
           {
-            id: orderCollection.id,
-            shopId: order.shop.id,
-            amount: orderCollection.amount,
-            agentId: orderCollection.agent.id,
+            id: `${order.id}`,
+            shopId: `${order.shopId}`,
+            amount: `${orderCollection.amount}`,
+            agentId: `${orderCollection.agent.id}`,
             agentName: orderCollection.agent.name,
             agentNo: orderCollection.agent.phoneNo,
             collectionStatus: orderCollection.collectionStatus,
@@ -337,35 +320,16 @@ export class OrderService {
             }
           });
         });
-        // this.firebaseService.messaging().sendEachForMulticast({
-        //   data: {
-        //     // id: order.id,
-        //     // shopId: order.id,
-        //     // amount: order.amount.toString(),
-        //     // status: order.status,
-        //     // deliveryPeriod: order.deliveryPeriod?.toString(),
-        //     // agentName: order.agent.name,
-        //     // agentId: order.agent.id,
-        //     // agentNo: order.agent.phoneNo,
-        //   },
-        //   notification: {
-        //     title: 'Order Completed',
-        //     body: `Your Mopup order #${orderCollection.id} has been completed`,
-        //   },
-        //   tokens: orderCollection.shop.notificationToken.concat(
-        //     orderCollection.agent.notificationToken,
-        //   ),
-        // });
         this.notificationService.sendNotificationToOne(
           {
             title: 'Order Completed',
             body: `Your Mopup order #${orderCollection.id} has been completed`,
           },
           {
-            id: orderCollection.id,
-            shopId: order.shop.id,
-            amount: orderCollection.amount,
-            agentId: orderCollection.agent.id,
+            id: `${orderCollection.id}`,
+            shopId: `${order.shop.id}`,
+            amount: `${orderCollection.amount}`,
+            agentId: `${orderCollection.agent.id}`,
             agentName: orderCollection.agent.name,
             agentNo: orderCollection.agent.phoneNo,
             collectionStatus: orderCollection.collectionStatus,
@@ -398,10 +362,10 @@ export class OrderService {
               body: `Your Mopup order has been confirmed by shop, please enter Shop key to complete`,
             },
             {
-              id: orderCollection.id,
-              shopId: order.shop.id,
-              amount: orderCollection.amount,
-              agentId: orderCollection.agent.id,
+              id: `${orderCollection.id}`,
+              shopId: `${order.shop.id}`,
+              amount: `${orderCollection.amount}`,
+              agentId: `${orderCollection.agent.id}`,
               agentName: orderCollection.agent.name,
               agentNo: orderCollection.agent.phoneNo,
               collectionStatus: orderCollection.collectionStatus,
