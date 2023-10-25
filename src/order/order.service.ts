@@ -25,6 +25,7 @@ import { generateKey } from 'src/utils/misc';
 import { Reference } from '@firebase/database-types';
 import { OrderCollection } from './entities/orderCollection.entity';
 import { NotificationService } from 'src/notification/notification.service';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class OrderService {
@@ -466,5 +467,14 @@ export class OrderService {
       });
     }
     await order.save();
+  }
+
+  @Cron('0 0 * * *')
+  async CleanOrders() {
+    const remiainingOrders = await this.orderRepository.find({
+      where: {
+        status: OrderStatusEnum.COMPLETED,
+      },
+    });
   }
 }

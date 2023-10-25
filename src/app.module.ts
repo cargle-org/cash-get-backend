@@ -10,6 +10,7 @@ import { ConfigModule } from '@nestjs/config';
 import { validate } from './utils/env.valiadtion';
 import { FirebaseModule } from './firebase/firebase.module';
 import { NotificationModule } from './notification/notification.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { NotificationModule } from './notification/notification.module';
     UserModule,
     OrderModule,
     ShopModule,
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
       validate,
