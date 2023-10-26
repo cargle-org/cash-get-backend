@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
@@ -6,6 +7,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Not } from 'typeorm';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -71,23 +73,6 @@ export class OrderService {
       deliveryPeriod: newOrder.deliveryPeriod?.toString(),
     });
 
-    // await this.firebaseService.messaging().send({
-    //   data: {
-    //     id: `${newOrder.id}`,
-    //     shopId: `${shop.id}`,
-    //     amount: newOrder.amount.toString(),
-    //     status: newOrder.status,
-    //     deliveryPeriod: newOrder.deliveryPeriod?.toString(),
-    //     agentName: '',
-    //     agentId: '',
-    //     agentNo: '',
-    //   },
-    //   notification: {
-    //     title: 'New Mopup Request',
-    //     body: `Shop ${shop.name} has posted a new order`,
-    //   },
-    //   topic: 'agent',
-    // });
     this.notificationService.sendNotificationToAgents(
       {
         title: 'New Mopup Request',
@@ -147,23 +132,12 @@ export class OrderService {
 
     order.status = OrderStatusEnum.IN_PROGRESS;
     order.remainingAmount = order.remainingAmount - amount;
+    if (order.remainingAmount < 0) {
+      throw new BadRequestException('Mop up amount is too much');
+    }
     const orderCollection = await this.orderCollectionRepository.save(
       orderCollectionDetails,
     );
-    this.firebaseOrderRef.on('value', (snapshot) => {
-      snapshot.forEach((childSnapshot) => {
-        if (childSnapshot.val().id == orderId) {
-          this.firebaseOrderRef.child(childSnapshot.key).set({
-            id: order.id,
-            shopId: shop.id,
-            amount: order.amount,
-            status: order.status,
-            deliveryPeriod: order.deliveryPeriod?.toString(),
-            remainingAmount: order.remainingAmount,
-          });
-        }
-      });
-    });
 
     this.firebaseOrderCollectionRef.push({
       id: orderCollection.id,
@@ -178,6 +152,30 @@ export class OrderService {
       collectionStatus: orderCollection.collectionStatus,
       collectionProgressStatus: orderCollection.collectionProgressStatus,
       deliveryPeriod: order.deliveryPeriod?.toISOString(),
+    });
+    const orderCollectionsFirebase = [];
+    this.firebaseOrderCollectionRef.on('value', (snapshot) => {
+      snapshot.forEach((childSnapshot) => {
+        if (childSnapshot.val().orderId == orderId) {
+          orderCollectionsFirebase.push(childSnapshot.val());
+        }
+      });
+    });
+
+    this.firebaseOrderRef.on('value', (snapshot) => {
+      snapshot.forEach((childSnapshot) => {
+        if (childSnapshot.val().id == orderId) {
+          this.firebaseOrderRef.child(childSnapshot.key).set({
+            id: order.id,
+            shopId: shop.id,
+            amount: order.amount,
+            status: order.status,
+            deliveryPeriod: order.deliveryPeriod?.toString(),
+            remainingAmount: order.remainingAmount,
+            orderCollections: orderCollectionsFirebase,
+          });
+        }
+      });
     });
 
     this.notificationService.sendNotificationToOne(
@@ -284,6 +282,31 @@ export class OrderService {
           order.shop.notificationToken,
         );
       }
+
+      const orderCollectionsFirebase = [];
+      this.firebaseOrderCollectionRef.on('value', (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          if (childSnapshot.val().orderId == order.id) {
+            orderCollectionsFirebase.push(childSnapshot.val());
+          }
+        });
+      });
+
+      this.firebaseOrderRef.on('value', (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          if (childSnapshot.val().id == order.id) {
+            this.firebaseOrderRef.child(childSnapshot.key).set({
+              id: order.id,
+              shopId: order.shop.id,
+              amount: order.amount,
+              status: order.status,
+              deliveryPeriod: order.deliveryPeriod?.toString(),
+              remainingAmount: order.remainingAmount,
+              orderCollections: orderCollectionsFirebase,
+            });
+          }
+        });
+      });
     } else {
       throw new ForbiddenException('Wrong Agent Key');
     }
@@ -378,6 +401,30 @@ export class OrderService {
           );
         });
       }
+      const orderCollectionsFirebase = [];
+      this.firebaseOrderCollectionRef.on('value', (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          if (childSnapshot.val().orderId == order.id) {
+            orderCollectionsFirebase.push(childSnapshot.val());
+          }
+        });
+      });
+
+      this.firebaseOrderRef.on('value', (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          if (childSnapshot.val().id == order.id) {
+            this.firebaseOrderRef.child(childSnapshot.key).set({
+              id: order.id,
+              shopId: order.shop.id,
+              amount: order.amount,
+              status: order.status,
+              deliveryPeriod: order.deliveryPeriod?.toString(),
+              remainingAmount: order.remainingAmount,
+              orderCollections: orderCollectionsFirebase,
+            });
+          }
+        });
+      });
     } else {
       throw new ForbiddenException('Wrong Shop Key');
     }
@@ -471,10 +518,64 @@ export class OrderService {
 
   @Cron('0 0 * * *')
   async CleanOrders() {
-    const remiainingOrders = await this.orderRepository.find({
+    const remainingOrders = await this.orderRepository.find({
       where: {
-        status: OrderStatusEnum.COMPLETED,
+        status: Not(OrderStatusEnum.COMPLETED),
+      },
+      relations: {
+        orderCollections: true,
       },
     });
+
+    for (const order of remainingOrders) {
+      let remainingAmount = order.remainingAmount;
+      order.orderCollections.forEach(async (orderCollection) => {
+        if (
+          orderCollection.collectionProgressStatus !==
+          CollectionProgressStatusEnum.COMPLETED
+        ) {
+          orderCollection.collectionProgressStatus =
+            CollectionProgressStatusEnum.UNSUCCESSFUL;
+          await orderCollection.save();
+          remainingAmount = remainingAmount + orderCollection.amount;
+        }
+      });
+      order.remainingAmount = remainingAmount;
+      order.status = OrderStatusEnum.COMPLETED;
+      // if (!order.orderCollections || order.orderCollections.length == 0) {
+      //   order.status = OrderStatusEnum.NOT_HANDLED;
+      // } else {
+      //   order.status = OrderStatusEnum.NOT_COMPLETED;
+      // }
+
+      // handle order in firebase
+      const orderCollectionsFirebase = [];
+      this.firebaseOrderCollectionRef.on('value', (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          if (childSnapshot.val().orderId == order.id) {
+            orderCollectionsFirebase.push(childSnapshot.val());
+          }
+        });
+      });
+      this.firebaseOrderRef.on('value', (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          if (childSnapshot.val().id == order.id) {
+            this.firebaseOrderRef.child(childSnapshot.key).set({
+              id: order.id,
+              shopId: order.shop.id,
+              amount: order.amount,
+              status: order.status,
+              deliveryPeriod: order.deliveryPeriod?.toString(),
+              remainingAmount: order.remainingAmount,
+              orderCollections: orderCollectionsFirebase,
+            });
+          }
+        });
+      });
+      await order.save();
+    }
+
+    // clear Order Collections
+    this.firebaseOrderCollectionRef.remove();
   }
 }

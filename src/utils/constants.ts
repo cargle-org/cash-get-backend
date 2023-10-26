@@ -11,11 +11,13 @@ export enum OrderStatusEnum {
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
   NOT_HANDLED = 'NOT_HANDLED',
+  // NOT_COMPLETED = 'NOT_COMPLETED',
 }
 
 export enum CollectionProgressStatusEnum {
   STARTED = 'STARTED',
   COMPLETED = 'COMPLETED',
+  UNSUCCESSFUL = 'UNSUCCESSFUL',
 }
 
 export enum CollectionStatusEnum {
