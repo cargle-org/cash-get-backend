@@ -444,7 +444,9 @@ export class OrderService {
       },
       relations: {
         shop: true,
-        orderCollections: true,
+        orderCollections: {
+          agent: true,
+        },
       },
     });
     if (!order) {
