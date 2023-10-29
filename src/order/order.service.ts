@@ -216,7 +216,7 @@ export class OrderService {
       this.firebaseOrderCollectionRef.on('value', (snapshot) => {
         snapshot.forEach((childSnapshot) => {
           if (childSnapshot.val().id == orderCollectionId) {
-            this.firebaseOrderRef.child(childSnapshot.key).set({
+            this.firebaseOrderCollectionRef.child(childSnapshot.key).set({
               id: orderCollection.id,
               shopId: order.shop.id,
               amount: orderCollection.amount,
