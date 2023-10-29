@@ -209,16 +209,16 @@ export class OrderService {
     }
     orderCollection.agentConfirmed = true;
 
-    // check if order collection is confirmed
-    if (orderCollection.shopConfirmed) {
+    //check if agent is confirmed and confirm order collection
+    if (orderCollection.agentConfirmed) {
       orderCollection.collectionProgressStatus =
         CollectionProgressStatusEnum.COMPLETED;
       this.firebaseOrderCollectionRef.on('value', (snapshot) => {
         snapshot.forEach((childSnapshot) => {
           if (childSnapshot.val().id == orderCollectionId) {
-            this.firebaseOrderCollectionRef.child(childSnapshot.key).set({
+            this.firebaseOrderRef.child(childSnapshot.key).set({
               id: orderCollection.id,
-              shopId: order.shop.id,
+              shopId: order.shopId,
               amount: orderCollection.amount,
               agentId: orderCollection.agent.id,
               agentName: orderCollection.agent.name,
@@ -231,24 +231,6 @@ export class OrderService {
           }
         });
       });
-      this.notificationService.sendNotificationToOne(
-        {
-          title: 'Shop Confirmed Order',
-          body: `Your Mopup order has been confirmed by Shop, please enter Agent key to complete`,
-        },
-        {
-          id: `${order.id}`,
-          shopId: `${order.shopId}`,
-          amount: `${orderCollection.amount}`,
-          agentId: `${orderCollection.agent.id}`,
-          agentName: orderCollection.agent.name,
-          agentNo: orderCollection.agent.phoneNo,
-          collectionStatus: orderCollection.collectionStatus,
-          collectionProgressStatus: orderCollection.collectionProgressStatus,
-          deliveryPeriod: order.deliveryPeriod?.toString(),
-        },
-        orderCollection.agent.notificationToken,
-      );
     }
     await orderCollection.save();
 
