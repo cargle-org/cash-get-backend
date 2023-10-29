@@ -201,13 +201,14 @@ export class OrderService {
     return order;
   }
 
-  async agentConfirm(orderCollectionId: string, agentKey: string) {
+  async confirmAgent(orderCollectionId: string, agentKey: string) {
     const orderCollection = await this.findOneCollection(orderCollectionId);
     const order = await this.findOne((orderCollection.order as Order).id);
 
     if (orderCollection.agentKey !== agentKey) {
       throw new ForbiddenException('Wrong Agent Key');
     }
+
     orderCollection.agentConfirmed = true;
 
     this.notificationService.sendNotificationToOne(
@@ -229,7 +230,7 @@ export class OrderService {
       orderCollection.agent.notificationToken,
     );
 
-    //check if agent is confirmed and confirm order collection
+    //check if shop is confirmed and confirm order collection
     if (orderCollection.shopConfirmed) {
       orderCollection.collectionProgressStatus =
         CollectionProgressStatusEnum.COMPLETED;
@@ -285,46 +286,55 @@ export class OrderService {
     }
     await order.save();
 
+    //reached here
+    console.log({ stage1: orderCollection });
+
     // update firebase order with order collection
     const orderCollectionsFirebase = [];
-    this.firebaseOrderCollectionRef.on('value', (snapshot) => {
-      snapshot.forEach((childSnapshot) => {
-        if (childSnapshot.val().id == orderCollectionId) {
-          this.firebaseOrderCollectionRef.child(childSnapshot.key).set({
-            id: orderCollection.id,
-            orderId: order.id,
-            shopName: order.shop.name,
-            shopAddress: order.shop.address,
-            shopId: order.shopId,
-            amount: orderCollection.amount,
-            agentId: orderCollection.agent.id,
-            agentName: orderCollection.agent.name,
-            agentNo: orderCollection.agent.phoneNo,
-            collectionStatus: orderCollection.collectionStatus,
-            collectionProgressStatus: orderCollection.collectionProgressStatus,
-            deliveryPeriod: order.deliveryPeriod?.toString(),
-          });
-          orderCollectionsFirebase.push({
-            id: orderCollection.id,
-            orderId: order.id,
-            shopName: order.shop.name,
-            shopAddress: order.shop.address,
-            shopId: order.shopId,
-            amount: orderCollection.amount,
-            agentId: orderCollection.agent.id,
-            agentName: orderCollection.agent.name,
-            agentNo: orderCollection.agent.phoneNo,
-            collectionStatus: orderCollection.collectionStatus,
-            collectionProgressStatus: orderCollection.collectionProgressStatus,
-            deliveryPeriod: order.deliveryPeriod?.toString(),
-          });
-        } else if (childSnapshot.val().orderId == order.id) {
-          orderCollectionsFirebase.push(childSnapshot.val());
-        }
-      });
-    });
+    const orderCollectionlistener = this.firebaseOrderCollectionRef.on(
+      'value',
+      (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          if (childSnapshot.val().id == orderCollectionId) {
+            this.firebaseOrderCollectionRef.child(childSnapshot.key).set({
+              id: orderCollection.id,
+              orderId: order.id,
+              shopName: order.shop.name,
+              shopAddress: order.shop.address,
+              shopId: order.shopId,
+              amount: orderCollection.amount,
+              agentId: orderCollection.agent.id,
+              agentName: orderCollection.agent.name,
+              agentNo: orderCollection.agent.phoneNo,
+              collectionStatus: orderCollection.collectionStatus,
+              collectionProgressStatus:
+                orderCollection.collectionProgressStatus,
+              deliveryPeriod: order.deliveryPeriod?.toString(),
+            });
+            orderCollectionsFirebase.push({
+              id: orderCollection.id,
+              orderId: order.id,
+              shopName: order.shop.name,
+              shopAddress: order.shop.address,
+              shopId: order.shopId,
+              amount: orderCollection.amount,
+              agentId: orderCollection.agent.id,
+              agentName: orderCollection.agent.name,
+              agentNo: orderCollection.agent.phoneNo,
+              collectionStatus: orderCollection.collectionStatus,
+              collectionProgressStatus:
+                orderCollection.collectionProgressStatus,
+              deliveryPeriod: order.deliveryPeriod?.toString(),
+            });
+          } else if (childSnapshot.val().orderId == order.id) {
+            orderCollectionsFirebase.push(childSnapshot.val());
+          }
+        });
+      },
+    );
+    this.firebaseOrderCollectionRef.off('value', orderCollectionlistener);
 
-    this.firebaseOrderRef.on('value', (snapshot) => {
+    const orderListerner = this.firebaseOrderRef.on('value', (snapshot) => {
       snapshot.forEach((childSnapshot) => {
         if (childSnapshot.val().id == order.id) {
           this.firebaseOrderRef.child(childSnapshot.key).set({
@@ -340,10 +350,12 @@ export class OrderService {
       });
     });
 
+    this.firebaseOrderCollectionRef.off('value', orderListerner);
+
     return orderCollection;
   }
 
-  async shopConfirm(orderCollectionId: string, shopKey: string) {
+  async confirmShop(orderCollectionId: string, shopKey: string) {
     const orderCollection = await this.findOneCollection(orderCollectionId);
     const order = await this.findOne((orderCollection.order as Order).id);
 
@@ -446,44 +458,50 @@ export class OrderService {
 
     //Update firebase
     const orderCollectionsFirebase = [];
-    this.firebaseOrderCollectionRef.on('value', (snapshot) => {
-      snapshot.forEach((childSnapshot) => {
-        if (childSnapshot.val().id == orderCollectionId) {
-          this.firebaseOrderCollectionRef.child(childSnapshot.key).set({
-            id: orderCollection.id,
-            orderId: order.id,
-            shopName: order.shop.name,
-            shopAddress: order.shop.address,
-            shopId: order.shopId,
-            amount: orderCollection.amount,
-            agentId: orderCollection.agent.id,
-            agentName: orderCollection.agent.name,
-            agentNo: orderCollection.agent.phoneNo,
-            collectionStatus: orderCollection.collectionStatus,
-            collectionProgressStatus: orderCollection.collectionProgressStatus,
-            deliveryPeriod: order.deliveryPeriod?.toString(),
-          });
-          orderCollectionsFirebase.push({
-            id: orderCollection.id,
-            orderId: order.id,
-            shopName: order.shop.name,
-            shopAddress: order.shop.address,
-            shopId: order.shopId,
-            amount: orderCollection.amount,
-            agentId: orderCollection.agent.id,
-            agentName: orderCollection.agent.name,
-            agentNo: orderCollection.agent.phoneNo,
-            collectionStatus: orderCollection.collectionStatus,
-            collectionProgressStatus: orderCollection.collectionProgressStatus,
-            deliveryPeriod: order.deliveryPeriod?.toString(),
-          });
-        } else if (childSnapshot.val().orderId == order.id) {
-          orderCollectionsFirebase.push(childSnapshot.val());
-        }
-      });
-    });
+    const orderCollectionlistener = this.firebaseOrderCollectionRef.on(
+      'value',
+      (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          if (childSnapshot.val().id == orderCollectionId) {
+            this.firebaseOrderCollectionRef.child(childSnapshot.key).set({
+              id: orderCollection.id,
+              orderId: order.id,
+              shopName: order.shop.name,
+              shopAddress: order.shop.address,
+              shopId: order.shopId,
+              amount: orderCollection.amount,
+              agentId: orderCollection.agent.id,
+              agentName: orderCollection.agent.name,
+              agentNo: orderCollection.agent.phoneNo,
+              collectionStatus: orderCollection.collectionStatus,
+              collectionProgressStatus:
+                orderCollection.collectionProgressStatus,
+              deliveryPeriod: order.deliveryPeriod?.toString(),
+            });
+            orderCollectionsFirebase.push({
+              id: orderCollection.id,
+              orderId: order.id,
+              shopName: order.shop.name,
+              shopAddress: order.shop.address,
+              shopId: order.shopId,
+              amount: orderCollection.amount,
+              agentId: orderCollection.agent.id,
+              agentName: orderCollection.agent.name,
+              agentNo: orderCollection.agent.phoneNo,
+              collectionStatus: orderCollection.collectionStatus,
+              collectionProgressStatus:
+                orderCollection.collectionProgressStatus,
+              deliveryPeriod: order.deliveryPeriod?.toString(),
+            });
+          } else if (childSnapshot.val().orderId == order.id) {
+            orderCollectionsFirebase.push(childSnapshot.val());
+          }
+        });
+      },
+    );
+    this.firebaseOrderCollectionRef.off('value', orderCollectionlistener);
 
-    this.firebaseOrderRef.on('value', (snapshot) => {
+    const orderlistener = this.firebaseOrderRef.on('value', (snapshot) => {
       snapshot.forEach((childSnapshot) => {
         if (childSnapshot.val().id == order.id) {
           this.firebaseOrderRef.child(childSnapshot.key).set({
@@ -498,6 +516,8 @@ export class OrderService {
         }
       });
     });
+
+    this.firebaseOrderCollectionRef.off('value', orderlistener);
 
     return orderCollection;
   }
@@ -622,14 +642,19 @@ export class OrderService {
 
       // handle order in firebase
       const orderCollectionsFirebase = [];
-      this.firebaseOrderCollectionRef.on('value', (snapshot) => {
-        snapshot.forEach((childSnapshot) => {
-          if (childSnapshot.val().orderId == order.id) {
-            orderCollectionsFirebase.push(childSnapshot.val());
-          }
-        });
-      });
-      this.firebaseOrderRef.on('value', (snapshot) => {
+      const orderCollectionlistener = this.firebaseOrderCollectionRef.on(
+        'value',
+        (snapshot) => {
+          snapshot.forEach((childSnapshot) => {
+            if (childSnapshot.val().orderId == order.id) {
+              orderCollectionsFirebase.push(childSnapshot.val());
+            }
+          });
+        },
+      );
+      this.firebaseOrderCollectionRef.off('value', orderCollectionlistener);
+
+      const orderlistener = this.firebaseOrderRef.on('value', (snapshot) => {
         snapshot.forEach((childSnapshot) => {
           if (childSnapshot.val().id == order.id) {
             this.firebaseOrderRef.child(childSnapshot.key).set({
@@ -644,6 +669,7 @@ export class OrderService {
           }
         });
       });
+      this.firebaseOrderRef.off('value', orderlistener);
       await order.save();
     }
 

@@ -81,7 +81,7 @@ export class OrderController {
     @Body() updateKeyDto: UpdateKeyDto,
     @Param('id') orderCollectionId: string,
   ) {
-    const data = await this.orderService.agentConfirm(
+    const data = await this.orderService.confirmAgent(
       orderCollectionId,
       updateKeyDto.key,
     );
@@ -97,7 +97,7 @@ export class OrderController {
     @Body() updateKeyDto: UpdateKeyDto,
     @Param('id') orderCollection: string,
   ) {
-    const data = await this.orderService.shopConfirm(
+    const data = await this.orderService.confirmShop(
       orderCollection,
       updateKeyDto.key,
     );
