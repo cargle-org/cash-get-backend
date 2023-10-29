@@ -203,95 +203,61 @@ export class OrderService {
   async agentConfirm(orderCollectionId: string, agentKey: string) {
     const orderCollection = await this.findOneCollection(orderCollectionId);
     const order = await this.findOne((orderCollection.order as Order).id);
-    if (orderCollection.agentKey === agentKey) {
-      orderCollection.agentConfirmed = true;
-      if (orderCollection.shopConfirmed) {
-        orderCollection.collectionProgressStatus =
-          CollectionProgressStatusEnum.COMPLETED;
-        this.firebaseOrderCollectionRef.on('value', (snapshot) => {
-          snapshot.forEach((childSnapshot) => {
-            if (childSnapshot.val().id == orderCollectionId) {
-              this.firebaseOrderRef.child(childSnapshot.key).set({
-                id: orderCollection.id,
-                shopId: order.shop.id,
-                amount: orderCollection.amount,
-                agentId: orderCollection.agent.id,
-                agentName: orderCollection.agent.name,
-                agentNo: orderCollection.agent.phoneNo,
-                collectionStatus: orderCollection.collectionStatus,
-                collectionProgressStatus:
-                  orderCollection.collectionProgressStatus,
-                deliveryPeriod: order.deliveryPeriod?.toString(),
-              });
-            }
-          });
-        });
-        this.notificationService.sendNotificationToOne(
-          {
-            title: 'Order Completed',
-            body: `Your Mopup order #${orderCollection.id} has been completed`,
-          },
-          {
-            id: `${order.id}`,
-            shopId: `${order.shopId}`,
-            amount: `${orderCollection.amount}`,
-            agentId: `${orderCollection.agent.id}`,
-            agentName: orderCollection.agent.name,
-            agentNo: orderCollection.agent.phoneNo,
-            collectionStatus: orderCollection.collectionStatus,
-            collectionProgressStatus: orderCollection.collectionProgressStatus,
-            deliveryPeriod: order.deliveryPeriod?.toString(),
-          },
-          order.shop.notificationToken.concat(
-            orderCollection.agent.notificationToken,
-          ),
-        );
-      }
-      if (orderCollection.collectionStatus == CollectionStatusEnum.FULL) {
-        order.status = OrderStatusEnum.COMPLETED;
-        this.firebaseOrderRef.on('value', (snapshot) => {
-          snapshot.forEach((childSnapshot) => {
-            if (childSnapshot.val().id == order.id) {
-              this.firebaseOrderRef.child(childSnapshot.key).set({
-                id: order.id,
-                shopId: order.shop.id,
-                amount: order.amount,
-                status: order.status,
-                deliveryPeriod: order.deliveryPeriod?.toString(),
-                remainingAmount: order.remainingAmount,
-              });
-            }
-          });
-        });
-        this.notificationService.sendNotificationToOne(
-          {
-            title: 'Agent Confirmed Order',
-            body: `Your Mopup order has been confirmed by agent, please enter Agent key to complete`,
-          },
-          {
-            id: `${order.id}`,
-            shopId: `${order.shopId}`,
-            amount: `${orderCollection.amount}`,
-            agentId: `${orderCollection.agent.id}`,
-            agentName: orderCollection.agent.name,
-            agentNo: orderCollection.agent.phoneNo,
-            collectionStatus: orderCollection.collectionStatus,
-            collectionProgressStatus: orderCollection.collectionProgressStatus,
-            deliveryPeriod: order.deliveryPeriod?.toString(),
-          },
-          order.shop.notificationToken,
-        );
-      }
 
-      const orderCollectionsFirebase = [];
+    if (orderCollection.agentKey !== agentKey) {
+      throw new ForbiddenException('Wrong Agent Key');
+    }
+    orderCollection.agentConfirmed = true;
+
+    // check if order collection is confirmed
+    if (orderCollection.shopConfirmed) {
+      orderCollection.collectionProgressStatus =
+        CollectionProgressStatusEnum.COMPLETED;
       this.firebaseOrderCollectionRef.on('value', (snapshot) => {
         snapshot.forEach((childSnapshot) => {
-          if (childSnapshot.val().orderId == order.id) {
-            orderCollectionsFirebase.push(childSnapshot.val());
+          if (childSnapshot.val().id == orderCollectionId) {
+            this.firebaseOrderRef.child(childSnapshot.key).set({
+              id: orderCollection.id,
+              shopId: order.shop.id,
+              amount: orderCollection.amount,
+              agentId: orderCollection.agent.id,
+              agentName: orderCollection.agent.name,
+              agentNo: orderCollection.agent.phoneNo,
+              collectionStatus: orderCollection.collectionStatus,
+              collectionProgressStatus:
+                orderCollection.collectionProgressStatus,
+              deliveryPeriod: order.deliveryPeriod?.toString(),
+            });
           }
         });
       });
+      this.notificationService.sendNotificationToOne(
+        {
+          title: 'Shop Confirmed Order',
+          body: `Your Mopup order has been confirmed by Shop, please enter Agent key to complete`,
+        },
+        {
+          id: `${order.id}`,
+          shopId: `${order.shopId}`,
+          amount: `${orderCollection.amount}`,
+          agentId: `${orderCollection.agent.id}`,
+          agentName: orderCollection.agent.name,
+          agentNo: orderCollection.agent.phoneNo,
+          collectionStatus: orderCollection.collectionStatus,
+          collectionProgressStatus: orderCollection.collectionProgressStatus,
+          deliveryPeriod: order.deliveryPeriod?.toString(),
+        },
+        orderCollection.agent.notificationToken,
+      );
+    }
+    await orderCollection.save();
 
+    // check if order is completed
+    if (
+      orderCollection.collectionStatus == CollectionStatusEnum.FULL ||
+      order.remainingAmount == 0
+    ) {
+      order.status = OrderStatusEnum.COMPLETED;
       this.firebaseOrderRef.on('value', (snapshot) => {
         snapshot.forEach((childSnapshot) => {
           if (childSnapshot.val().id == order.id) {
@@ -302,17 +268,58 @@ export class OrderService {
               status: order.status,
               deliveryPeriod: order.deliveryPeriod?.toString(),
               remainingAmount: order.remainingAmount,
-              orderCollections: orderCollectionsFirebase,
             });
           }
         });
       });
-    } else {
-      throw new ForbiddenException('Wrong Agent Key');
+      this.notificationService.sendNotificationToOne(
+        {
+          title: 'Order Completed',
+          body: `Your Mopup order #${orderCollection.id} has been completed`,
+        },
+        {
+          id: `${order.id}`,
+          shopId: `${order.shopId}`,
+          amount: `${orderCollection.amount}`,
+          agentId: `${orderCollection.agent.id}`,
+          agentName: orderCollection.agent.name,
+          agentNo: orderCollection.agent.phoneNo,
+          collectionStatus: orderCollection.collectionStatus,
+          collectionProgressStatus: orderCollection.collectionProgressStatus,
+          deliveryPeriod: order.deliveryPeriod?.toString(),
+        },
+        order.shop.notificationToken.concat(
+          orderCollection.agent.notificationToken,
+        ),
+      );
     }
-
-    await orderCollection.save();
     await order.save();
+
+    // update firebase order with order collection
+    const orderCollectionsFirebase = [];
+    this.firebaseOrderCollectionRef.on('value', (snapshot) => {
+      snapshot.forEach((childSnapshot) => {
+        if (childSnapshot.val().orderId == order.id) {
+          orderCollectionsFirebase.push(childSnapshot.val());
+        }
+      });
+    });
+
+    this.firebaseOrderRef.on('value', (snapshot) => {
+      snapshot.forEach((childSnapshot) => {
+        if (childSnapshot.val().id == order.id) {
+          this.firebaseOrderRef.child(childSnapshot.key).set({
+            id: order.id,
+            shopId: order.shop.id,
+            amount: order.amount,
+            status: order.status,
+            deliveryPeriod: order.deliveryPeriod?.toString(),
+            remainingAmount: order.remainingAmount,
+            orderCollections: orderCollectionsFirebase,
+          });
+        }
+      });
+    });
 
     return orderCollection;
   }
@@ -321,28 +328,74 @@ export class OrderService {
     const orderCollection = await this.findOneCollection(orderCollectionId);
     const order = await this.findOne((orderCollection.order as Order).id);
 
-    if (orderCollection.shopKey === shopKey) {
-      orderCollection.shopConfirmed = true;
-      if (orderCollection.agentConfirmed) {
-        orderCollection.collectionProgressStatus =
-          CollectionProgressStatusEnum.COMPLETED;
-        this.firebaseOrderCollectionRef.on('value', (snapshot) => {
-          snapshot.forEach((childSnapshot) => {
-            if (childSnapshot.val().id == orderCollectionId) {
-              this.firebaseOrderRef.child(childSnapshot.key).set({
-                id: orderCollection.id,
-                shopId: order.shop.id,
-                amount: orderCollection.amount,
-                agentId: orderCollection.agent.id,
-                agentName: orderCollection.agent.name,
-                agentNo: orderCollection.agent.phoneNo,
-                collectionStatus: orderCollection.collectionStatus,
-                collectionProgressStatus:
-                  orderCollection.collectionProgressStatus,
-                deliveryPeriod: order.deliveryPeriod?.toString(),
-              });
-            }
-          });
+    if (orderCollection.shopKey !== shopKey) {
+      throw new ForbiddenException('Wrong Shop Key');
+    }
+
+    orderCollection.shopConfirmed = true;
+
+    this.notificationService.sendNotificationToOne(
+      {
+        title: 'Agent Confirmed Order Collection',
+        body: `Your Mopup order has been confirmed by Agent, please enter Agent key to complete`,
+      },
+      {
+        id: `${orderCollection.id}`,
+        shopId: `${order.shop.id}`,
+        amount: `${orderCollection.amount}`,
+        agentId: `${orderCollection.agent.id}`,
+        agentName: orderCollection.agent.name,
+        agentNo: orderCollection.agent.phoneNo,
+        collectionStatus: orderCollection.collectionStatus,
+        collectionProgressStatus: orderCollection.collectionProgressStatus,
+        deliveryPeriod: order.deliveryPeriod?.toString(),
+      },
+      order.shop.notificationToken,
+    );
+
+    //check if agent is confirmed and confirm order collection
+    if (orderCollection.agentConfirmed) {
+      orderCollection.collectionProgressStatus =
+        CollectionProgressStatusEnum.COMPLETED;
+      this.firebaseOrderCollectionRef.on('value', (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          if (childSnapshot.val().id == orderCollectionId) {
+            this.firebaseOrderRef.child(childSnapshot.key).set({
+              id: orderCollection.id,
+              shopId: order.shop.id,
+              amount: orderCollection.amount,
+              agentId: orderCollection.agent.id,
+              agentName: orderCollection.agent.name,
+              agentNo: orderCollection.agent.phoneNo,
+              collectionStatus: orderCollection.collectionStatus,
+              collectionProgressStatus:
+                orderCollection.collectionProgressStatus,
+              deliveryPeriod: order.deliveryPeriod?.toString(),
+            });
+          }
+        });
+      });
+    }
+    await orderCollection.save();
+
+    //check to confirm order
+    if (
+      orderCollection.collectionStatus == CollectionStatusEnum.FULL ||
+      order.remainingAmount == 0
+    ) {
+      order.status = OrderStatusEnum.COMPLETED;
+      this.firebaseOrderRef.on('value', (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          if (childSnapshot.val().id == order.id) {
+            this.firebaseOrderRef.child(childSnapshot.key).set({
+              id: order.id,
+              shopId: order.shop.id,
+              amount: order.amount,
+              status: order.status,
+              deliveryPeriod: order.deliveryPeriod?.toString(),
+              remainingAmount: order.remainingAmount,
+            });
+          }
         });
         this.notificationService.sendNotificationToOne(
           {
@@ -364,72 +417,36 @@ export class OrderService {
             orderCollection.agent.notificationToken,
           ),
         );
-      }
-      if (orderCollection.collectionStatus == CollectionStatusEnum.FULL) {
-        order.status = OrderStatusEnum.COMPLETED;
-        this.firebaseOrderRef.on('value', (snapshot) => {
-          snapshot.forEach((childSnapshot) => {
-            if (childSnapshot.val().id == order.id) {
-              this.firebaseOrderRef.child(childSnapshot.key).set({
-                id: order.id,
-                shopId: order.shop.id,
-                amount: order.amount,
-                status: order.status,
-                deliveryPeriod: order.deliveryPeriod?.toString(),
-                remainingAmount: order.remainingAmount,
-              });
-            }
-          });
-          this.notificationService.sendNotificationToOne(
-            {
-              title: 'Shop Confirmed Order',
-              body: `Your Mopup order has been confirmed by shop, please enter Shop key to complete`,
-            },
-            {
-              id: `${orderCollection.id}`,
-              shopId: `${order.shop.id}`,
-              amount: `${orderCollection.amount}`,
-              agentId: `${orderCollection.agent.id}`,
-              agentName: orderCollection.agent.name,
-              agentNo: orderCollection.agent.phoneNo,
-              collectionStatus: orderCollection.collectionStatus,
-              collectionProgressStatus:
-                orderCollection.collectionProgressStatus,
-              deliveryPeriod: order.deliveryPeriod?.toString(),
-            },
-            orderCollection.agent.notificationToken,
-          );
-        });
-      }
-      const orderCollectionsFirebase = [];
-      this.firebaseOrderCollectionRef.on('value', (snapshot) => {
-        snapshot.forEach((childSnapshot) => {
-          if (childSnapshot.val().orderId == order.id) {
-            orderCollectionsFirebase.push(childSnapshot.val());
-          }
-        });
       });
-
-      this.firebaseOrderRef.on('value', (snapshot) => {
-        snapshot.forEach((childSnapshot) => {
-          if (childSnapshot.val().id == order.id) {
-            this.firebaseOrderRef.child(childSnapshot.key).set({
-              id: order.id,
-              shopId: order.shop.id,
-              amount: order.amount,
-              status: order.status,
-              deliveryPeriod: order.deliveryPeriod?.toString(),
-              remainingAmount: order.remainingAmount,
-              orderCollections: orderCollectionsFirebase,
-            });
-          }
-        });
-      });
-    } else {
-      throw new ForbiddenException('Wrong Shop Key');
     }
+    await order.save();
 
-    await orderCollection.save();
+    //Update order with order collections
+    const orderCollectionsFirebase = [];
+    this.firebaseOrderCollectionRef.on('value', (snapshot) => {
+      snapshot.forEach((childSnapshot) => {
+        if (childSnapshot.val().orderId == order.id) {
+          orderCollectionsFirebase.push(childSnapshot.val());
+        }
+      });
+    });
+
+    this.firebaseOrderRef.on('value', (snapshot) => {
+      snapshot.forEach((childSnapshot) => {
+        if (childSnapshot.val().id == order.id) {
+          this.firebaseOrderRef.child(childSnapshot.key).set({
+            id: order.id,
+            shopId: order.shop.id,
+            amount: order.amount,
+            status: order.status,
+            deliveryPeriod: order.deliveryPeriod?.toString(),
+            remainingAmount: order.remainingAmount,
+            orderCollections: orderCollectionsFirebase,
+          });
+        }
+      });
+    });
+
     return orderCollection;
   }
 
