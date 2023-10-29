@@ -210,7 +210,7 @@ export class OrderService {
     orderCollection.agentConfirmed = true;
 
     //check if agent is confirmed and confirm order collection
-    if (orderCollection.agentConfirmed) {
+    if (orderCollection.shopConfirmed) {
       orderCollection.collectionProgressStatus =
         CollectionProgressStatusEnum.COMPLETED;
       this.firebaseOrderCollectionRef.on('value', (snapshot) => {
@@ -218,6 +218,9 @@ export class OrderService {
           if (childSnapshot.val().id == orderCollectionId) {
             this.firebaseOrderCollectionRef.child(childSnapshot.key).set({
               id: orderCollection.id,
+              orderId: order.id,
+              shopName: order.shop.name,
+              shopAddress: order.shop.address,
               shopId: order.shopId,
               amount: orderCollection.amount,
               agentId: orderCollection.agent.id,
@@ -346,6 +349,9 @@ export class OrderService {
           if (childSnapshot.val().id == orderCollectionId) {
             this.firebaseOrderCollectionRef.child(childSnapshot.key).set({
               id: orderCollection.id,
+              orderId: order.id,
+              shopName: order.shop.name,
+              shopAddress: order.shop.address,
               shopId: order.shop.id,
               amount: orderCollection.amount,
               agentId: orderCollection.agent.id,
