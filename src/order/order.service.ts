@@ -254,8 +254,10 @@ export class OrderService {
 
     // check if order is completed
     if (
-      orderCollection.collectionStatus == CollectionStatusEnum.FULL ||
-      order.remainingAmount == 0
+      (orderCollection.collectionStatus == CollectionStatusEnum.FULL ||
+        order.remainingAmount == 0) &&
+      orderCollection.collectionProgressStatus ===
+        CollectionProgressStatusEnum.COMPLETED
     ) {
       order.status = OrderStatusEnum.COMPLETED;
       this.firebaseOrderRef.on('value', (snapshot) => {
@@ -380,8 +382,10 @@ export class OrderService {
 
     //check to confirm order
     if (
-      orderCollection.collectionStatus == CollectionStatusEnum.FULL ||
-      order.remainingAmount == 0
+      (orderCollection.collectionStatus == CollectionStatusEnum.FULL ||
+        order.remainingAmount == 0) &&
+      orderCollection.collectionProgressStatus ===
+        CollectionProgressStatusEnum.COMPLETED
     ) {
       order.status = OrderStatusEnum.COMPLETED;
       this.firebaseOrderRef.on('value', (snapshot) => {
