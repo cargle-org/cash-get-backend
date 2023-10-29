@@ -526,6 +526,7 @@ export class OrderService {
       },
       relations: {
         orderCollections: true,
+        shop: true,
       },
     });
 
@@ -563,12 +564,12 @@ export class OrderService {
         snapshot.forEach((childSnapshot) => {
           if (childSnapshot.val().id == order.id) {
             this.firebaseOrderRef.child(childSnapshot.key).set({
-              id: order.id,
-              shopId: order.shop.id,
-              amount: order.amount,
-              status: order.status,
+              id: `${order.id}`,
+              shopId: `${order.shop.id}`,
+              amount: `${order.amount}`,
+              status: `${order.status}`,
               deliveryPeriod: order.deliveryPeriod?.toString(),
-              remainingAmount: order.remainingAmount,
+              remainingAmount: `${order.remainingAmount}`,
               orderCollections: orderCollectionsFirebase,
             });
           }
